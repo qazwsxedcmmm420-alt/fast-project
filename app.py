@@ -17,6 +17,10 @@ spreadsheet = client.open("Deposit App Database")
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+@app.route("/")
+def home():
+    return redirect(url_for("admin"))
+
 @app.route("/admin")
 def admin():
     try:
