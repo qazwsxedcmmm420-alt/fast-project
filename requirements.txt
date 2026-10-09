@@ -1,4 +1,4 @@
 Flask
 gspread
-google-auth
-gunicorn
+oauth2client
+werkzeug
