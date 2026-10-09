@@ -2,8 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة حساب: {{ user.Name }}</title>
-    <!-- استدعاء Bootstrap 5 -->
+    <title>سجل عمليات الحساب</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { 
@@ -11,135 +10,77 @@
             color: #e2e8f0; 
             font-family: Tahoma, sans-serif; 
         }
-        .card-custom { 
+        .header-title {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+        .content-card { 
             background-color: #1e293b; 
             border: 1px solid #334155; 
             border-radius: 16px; 
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
-        .table-custom { 
-            color: #e2e8f0; 
+        .table {
+            color: #e2e8f0;
         }
-        .table-custom th { 
-            background-color: #0f172a !important; 
-            color: #38bdf8 !important; 
-            border-bottom: 2px solid #334155;
-            text-align: center;
+        .table-dark-custom {
+            background-color: #1e293b;
+            color: #e2e8f0;
         }
-        .table-custom td { 
-            background-color: #1e293b !important; 
-            color: #e2e8f0 !important; 
-            border-color: #334155 !important; 
-            vertical-align: middle;
-            text-align: center;
+        .table-dark-custom th {
+            background-color: #0f172a;
+            color: #38bdf8;
+            border-color: #334155;
         }
-        .table-responsive { 
-            max-height: 420px; 
-            overflow-y: auto; 
-        }
-        .form-control, .form-select { 
-            background-color: #0f172a !important; 
-            color: #e2e8f0 !important; 
-            border: 1px solid #334155 !important; 
-            border-radius: 8px;
-            padding: 10px;
-        }
-        .form-control:focus, .form-select:focus { 
-            border-color: #38bdf8 !important; 
-            box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25); 
-        }
-        .form-control::placeholder { 
-            color: #64748b; 
-        }
-        .btn-submit {
-            background-color: #0d9488;
-            border: none;
-            color: #fff;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .btn-submit:hover {
-            background-color: #0f766e;
-            color: #fff;
+        .table-dark-custom td {
+            border-color: #334155;
         }
     </style>
 </head>
-<body class="p-4">
+<body class="p-5">
 
-    <div class="container-fluid">
-        <!-- شريط العنوان العلوي -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
-            <h3 class="fw-bold" style="color: #38bdf8;">إدارة حساب: {{ user.Name }}</h3>
-            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm px-3">✕ العودة للوحة التحكم</a>
+    <div class="container">
+        <!-- رأس الصفحة -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+            <h2 class="header-title">حساب: {{ user.Name }}</h2>
+            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm px-4">العودة لوحة التحكم</a>
         </div>
 
-        <div class="row">
-            <!-- القسم الأيمن: نموذج تسجيل عملية جديدة -->
-            <div class="col-lg-4 mb-4">
-                <div class="card card-custom p-4">
-                    <h5 class="mb-3 text-warning fw-bold">➕ تسجيل عملية جديدة</h5>
-                    <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
-                        
-                        <div class="mb-3">
-                            <label class="form-label text-light">👤 اسم مسجل العملية:</label>
-                            <input type="text" name="agent_name" class="form-control" placeholder="أدخل اسم مسجل العملية..." required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label text-light">📊 نوع العملية:</label>
-                            <select name="type" class="form-select">
-                                <option value="إيداع">إيداع (+)</option>
-                                <option value="سحب">سحب (-)</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label text-light">💰 المبلغ:</label>
-                            <input type="number" name="amount" class="form-control" placeholder="أدخل المبلغ..." required>
-                        </div>
-
-                        <button type="submit" class="btn btn-submit w-100 fw-bold py-2 mt-2 shadow-sm">💾 حفظ العملية</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- القسم الأيسر: جدول سجل العمليات السابقة -->
-            <div class="col-lg-8 mb-4">
-                <div class="card card-custom p-4">
-                    <h5 class="mb-3 text-info fw-bold">🕒 سجل العمليات السابقة</h5>
-                    <div class="table-responsive">
-                        <table class="table table-custom table-striped">
-                            <thead>
-                                <tr>
-                                    <th>التاريخ</th>
-                                    <th>المبلغ</th>
-                                    <th>النوع</th>
-                                    <th>اسم مسجل العملية</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for t in transactions %}
-                                <tr>
-                                    <td>{{ t.Date }}</td>
-                                    <td class="fw-bold text-success">${{ t.Amount }}</td>
-                                    <td>
-                                        {% if t.Type == 'إيداع' %}
-                                            <span class="badge bg-success px-3 py-2">إيداع</span>
-                                        {% else %}
-                                            <span class="badge bg-danger px-3 py-2">سحب</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ t.Agent }}</td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="4" class="text-muted py-4">لا توجد عمليات مسجلة حتى الآن</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- قسم عرض سجل العمليات السابقة فقط -->
+        <div class="content-card p-4">
+            <h4 class="mb-4 text-info">📋 سجل العمليات السابقة</h4>
+            
+            <div class="table-responsive">
+                <table class="table table-dark-custom table-striped table-hover align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>اسم مسجل العملية</th>
+                            <th>النوع</th>
+                            <th>المبلغ</th>
+                            <th>التاريخ والوقت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if transactions %}
+                            {% for t in transactions %}
+                            <tr>
+                                <td>{{ t.Agent }}</td>
+                                <td>
+                                    <span class="badge {% if 'إيداع' in t.Type %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ t.Type }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold">{{ t.Amount }}</td>
+                                <td class="text-muted small">{{ t.Date }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-muted py-4">لا توجد عمليات مسجلة حتى الآن</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
