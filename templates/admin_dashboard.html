@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - قائمة المستخدمين</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0b1116;
+            color: #ffffff;
+            padding: 20px;
+        }
+        h1.title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffffff;
+            font-size: 28px;
+        }
+        .users-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .user-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .user-card {
+            background-color: #162832;
+            border: 1px solid #1e2d42;
+            border-radius: 16px;
+            padding: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-5px);
+            border-color: #0284c7;
+        }
+        .icon-box {
+            width: 70px;
+            height: 70px;
+            background-color: #0284c7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .icon-box i {
+            font-size: 30px;
+            color: #ffffff;
+        }
+        .user-info {
+            text-align: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        .user-info h3 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        .user-info p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .balance {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2ec55e;
+        }
+        .balance.negative {
+            color: #ef4444;
+        }
+        .avatar-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            margin-top: 10px;
+            border-top: 1px solid #1e2d42;
+            padding-top: 10px;
+        }
+        .avatar-form input[type="file"] {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .upload-btn {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+        .upload-btn:hover {
+            background-color: #0369a1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="title">قائمة المستخدمين</h1>
+
+    <div class="users-container">
+        {% for user in users %}
+        <!-- تم تحويل البطاقة إلى رابط تفاعلي يوجه لصفحة عمليات المستخدم مع تمرير المعرف الصحيح -->
+        <a href="{{ url_for('user_dashboard', user_id=user.User_ID) }}" class="user-card-link">
+            <div class="user-card">
+                <div class="icon-box">
+                    <img src="{{ url_for('static', filename='uploads/user_' ~ user.User_ID ~ '.jpg') }}" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
+                         alt="{{ user.Name }}">
+                    <i class="fa-solid fa-user" style="display: none;"></i>
+                </div>
+                
+                <div class="user-info">
+                    <h3>{{ user.Name }}</h3>
+                    <p>المبلغ الكلي في الحساب</p>
+                    <!-- تم تعديل اسم الحقل ليطابق Balance أو الرصيد حسب جدول جوجل شيتس الخاص بك -->
+                    <span class="balance">{{ user.Balance }} $</span>
+                </div>
+
+                <!-- نموذج رفع الصورة (ملاحظة: تم جعله بمعزل عن الرابط لكي لا يفتح صفحة العمليات عند اختيار الصورة) -->
+                <form action="/update_avatar/{{ user.User_ID }}" method="POST" enctype="multipart/form-data" class="avatar-form" onclick="event.stopPropagation();">
+                    <input type="file" name="avatar" accept="image/*" required>
+                    <button type="submit" class="upload-btn">حفظ الصورة الشخصية</button>
+                </form>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
