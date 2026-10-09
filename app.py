@@ -106,7 +106,7 @@ def user_dashboard(user_id):
     
     return render_template("user.html", user=user_info, transactions=user_transactions)
 
-   @app.route("/add_transaction/<user_id>", methods=["POST"])
+@app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
     transactions_sheet = spreadsheet.worksheet("transactions")
     users_sheet = spreadsheet.worksheet("users")
