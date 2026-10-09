@@ -30,6 +30,10 @@ def admin():
     except Exception as e:
         return f"خطأ في لوحة التحكم: {str(e)}", 500
 
+@app.route("/admin_logout")
+def admin_logout():
+    return redirect(url_for("admin"))
+
 @app.route("/user/<user_id>")
 def user_dashboard(user_id):
     try:
