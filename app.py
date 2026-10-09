@@ -130,5 +130,41 @@ def add_transaction(user_id):
         
     return redirect(url_for("user_dashboard", user_id=user_id))
 
+import os
+from werkzeug.utils import secure_filename
+
+# إعداد مجلد حفظ الصور في حال لم يكن موجوداً
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route("/upload_profile_image/<user_id>", methods=["POST"])
+def upload_profile_image(user_id):
+    if 'profile_image' in request.files:
+        file = request.files['profile_image']
+        if file.filename != '':
+            filename = secure_filename(file.filename)
+            # إضافة معرّف المستخدم لاسم الملف لمنع تكرار الأسماء
+            filename = f"user_{user_id}_{filename}"
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            
+            # تحديث اسم الصورة في جدول users في Google Sheets
+            users_sheet = spreadsheet.worksheet("users")
+            users = users_sheet.get_all_records()
+            
+            # البحث عن الصف الخاص بالمستخدم وتحديث عمود Profile_Image
+            cell = users_sheet.find(str(user_id))
+            if cell:
+                # نفترض أن عمود Profile_Image هو العمود الخامس مثلاً، أو نقوم بالتحديث المباشر
+                # سنقوم بتحديث عمود الصورة إذا كان موجوداً، أو تحديثه بناءً على رقم الصف
+                header = users_sheet.row_values(1)
+                if "Profile_Image" in header:
+                    col_index = header.index("Profile_Image") + 1
+                    users_sheet.update_cell(cell.row, col_index, filename)
+                else:
+                    # إذا لم يكن العمود موجوداً، يمكنك إضافته يدوياً في Google Sheets باسم Profile_Image
+                    pass
+                    
+    return redirect(url_for("admin"))
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

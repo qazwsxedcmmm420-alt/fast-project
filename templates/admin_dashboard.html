@@ -104,7 +104,7 @@
                     </form>
 
                     <!-- زر الانتقال للوحة حساب المستخدم -->
-                    <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="btn btn-outline-info btn-sm w-100 mt-2">إدارة الحساب والعمليات</a>
+                    <a href="{{ url_for('user_dashboard', user_id=user_id if user_id is defined else u.User_ID) }}" class="btn btn-outline-info btn-sm w-100 mt-2">إدارة الحساب والعمليات</a>
                 </div>
             </div>
             {% endfor %}
