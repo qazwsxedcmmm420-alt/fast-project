@@ -106,5 +106,29 @@ def user_dashboard(user_id):
     
     return render_template("user.html", user=user_info, transactions=user_transactions)
 
+   @app.route("/add_transaction/<user_id>", methods=["POST"])
+def add_transaction(user_id):
+    transactions_sheet = spreadsheet.worksheet("transactions")
+    users_sheet = spreadsheet.worksheet("users")
+    
+    users = users_sheet.get_all_records()
+    user_info = next((u for u in users if str(u.get("User_ID")) == str(user_id)), None)
+    
+    if user_info:
+        user_name = user_info.get("Name")
+        agent_name = request.form.get("agent_name")  # اسم مسجل العملية
+        transaction_type = request.form.get("type")  # إيداع أو سحب
+        amount = request.form.get("amount")          # المبلغ
+        
+        # جلب التاريخ والوقت الحالي تلقائياً
+        from datetime import datetime
+        current_time = datetime.now().strftime("%H:%M:%S %Y-%m-%d")
+        
+        # إضافة الصف بالترتيب الصحيح للأعمدة (اسم المستخدم، مسجل العملية، النوع، المبلغ، التاريخ)
+        transactions_sheet.append_row([user_name, agent_name, transaction_type, amount, current_time])
+        flash("تم تسجيل العملية بنجاح")
+        
+    return redirect(url_for("user_dashboard", user_id=user_id))
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

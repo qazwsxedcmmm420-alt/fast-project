@@ -2,265 +2,95 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المستخدم - سجل العمليات</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>إدارة حساب: {{ user.Name }}</title>
+    <!-- استدعاء Bootstrap 5 للتنسيق المتناسق -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #0b1116;
-            color: #ffffff;
-            padding: 15px;
-            direction: rtl;
-        }
-        /* رأس الصفحة ورحب بالعودة */
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .welcome-text p {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-        .welcome-text h2 {
-            font-size: 24px;
-            color: #ffffff;
-            font-weight: bold;
-        }
-        .logout-btn {
-            background-color: #162832;
-            color: #94a3b8;
-            border: 1px solid #1e2d42;
-            padding: 8px 14px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.2s;
-        }
-        .logout-btn:hover {
-            color: #fff;
-            background-color: #1e2d42;
-        }
-
-        /* أزرار تبديل الأرصدة (الرصيد الأساسي / رصيد الهدايا) */
-        .tabs-container {
-            display: flex;
-            background-color: #162832;
-            border-radius: 14px;
-            padding: 4px;
-            margin-bottom: 20px;
-            border: 1px solid #1e2d42;
-        }
-        .tab-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .tab-btn.active {
-            background-color: #059669;
-            color: #ffffff;
-        }
-        .tab-btn.gift-active {
-            background-color: #f97316;
-            color: #ffffff;
-        }
-
-        /* بطاقة عرض الرصيد المتاح الكبير */
-        .balance-card {
-            background-color: #162832;
-            border: 1px solid #1e2d42;
-            border-radius: 16px;
-            padding: 25px;
-            text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .balance-card p {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        .balance-card h1 {
-            font-size: 36px;
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        /* قسم سجل العمليات */
-        .section-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .section-title h3 {
-            font-size: 18px;
-            color: #ffffff;
-        }
-        .filter-badge {
-            background-color: #162832;
-            color: #94a3b8;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: 1px solid #1e2d42;
-        }
-
-        /* قائمة العمليات */
-        .transactions-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .transaction-item {
-            background-color: #162832;
-            border: 1px solid #1e2d42;
-            border-radius: 14px;
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.2s;
-        }
-        .transaction-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        /* أيقونة العملية (سهم صاعد أخضر أو سهم نازل أحمر) */
-        .tx-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        .tx-icon.success {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-        .tx-icon.danger {
-            background-color: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-        }
-        .tx-details h4 {
-            font-size: 14px;
-            color: #ffffff;
-            margin-bottom: 3px;
-        }
-        .tx-details span {
-            font-size: 11px;
-            color: #94a3b8;
-        }
-        .tx-amount {
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .tx-amount.success {
-            color: #10b981;
-        }
-        .tx-amount.danger {
-            color: #ef4444;
-        }
-        .no-data {
-            text-align: center;
-            background-color: #162832;
-            border: 1px solid #1e2d42;
-            padding: 30px;
-            border-radius: 14px;
-            color: #94a3b8;
-            font-size: 14px;
-        }
+        body { background-color: #12161f; color: #fff; font-family: Tahoma, sans-serif; }
+        .card-custom { background-color: #1b2230; border: 1px solid #2a3447; border-radius: 10px; }
+        .table-dark-custom { background-color: #1b2230; color: #fff; }
+        .table-dark-custom th, .table-dark-custom td { background-color: #1b2230; color: #fff; border-color: #2a3447; }
+        .table-responsive { max-height: 400px; overflow-y: auto; }
     </style>
 </head>
-<body>
+<body class="p-4">
 
-    <!-- رأس الصفحة: الترحيب وزر الخروج -->
-    <div class="header-section">
-        <div class="welcome-text">
-            <p>مرحباً بعودتك،</p>
-            <h2>{{ user.Name }}</h2>
+    <div class="container-fluid">
+        <!-- عنوان الصفحة وزر العودة -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold">إدارة حساب: {{ user.Name }}</h3>
+            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm">✕ العودة</a>
         </div>
-        <a href="/" class="logout-btn">
-            <i class="fa-solid fa-right-from-bracket"></i> خروج
-        </a>
-    </div>
 
-    <!-- أزرار تبديل الأرصدة -->
-    <div class="tabs-container">
-        <button class="tab-btn active">
-            <i class="fa-solid fa-wallet"></i> الرصيد الأساسي
-        </button>
-        <button class="tab-btn">
-            <i class="fa-solid fa-gift"></i> رصيد الهدايا
-        </button>
-    </div>
-
-    <!-- بطاقة الرصيد المتاح -->
-    <div class="balance-card">
-        <p>الرصيد المتاح</p>
-        <h1>{{ user.Balance }}</h1>
-    </div>
-
-    <!-- عنوان سجل العمليات -->
-    <div class="section-title">
-        <h3>سجل العمليات</h3>
-        <span class="filter-badge">آخر 100</span>
-    </div>
-
-    <!-- قائمة العمليات -->
-    <div class="transactions-list">
-        {% if transactions %}
-            {% for tx in transactions %}
-            <div class="transaction-item">
-                <div class="tx-right">
-                    <!-- تحديد شكل الأيقونة بناءً على نوع العملية أو المبلغ -->
-                    <div class="tx-icon {% if '-' in tx.Amount|string or 'سحب' in tx.Type|string or 'رفع' in tx.Type|string %}danger{% else %}success{% endif %}">
-                        {% if '-' in tx.Amount|string or 'سحب' in tx.Type|string or 'رفع' in tx.Type|string %}
-                            <i class="fa-solid fa-arrow-trend-down"></i>
-                        {% else %}
-                            <i class="fa-solid fa-arrow-trend-up"></i>
-                        {% endif %}
-                    </div>
-                    <div class="tx-details">
-                        <h4>{{ tx.Type }}</h4>
-                        <span>{{ tx.Date }}</span>
+        <div class="row">
+            <!-- القسم الأيسر: سجل العمليات السابقة -->
+            <div class="col-lg-7 mb-4">
+                <div class="card card-custom p-3 shadow">
+                    <h5 class="mb-3 text-info">🕒 سجل العمليات السابقة</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-dark-custom table-striped text-center align-middle">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>النوع</th>
+                                    <th>مسجل العملية</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in transactions %}
+                                <tr>
+                                    <td>{{ t.Date }}</td>
+                                    <td class="fw-bold">${{ t.Amount }}</td>
+                                    <td>
+                                        {% if t.Type == 'إيداع' %}
+                                            <span class="badge bg-success">إيداع</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">سحب</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ t.Agent }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-muted text-center py-3">لا توجد عمليات مسجلة حتى الآن</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="tx-amount {% if '-' in tx.Amount|string or 'سحب' in tx.Type|string or 'رفع' in tx.Type|string %}danger{% else %}success{% endif %}">
-                    {{ tx.Amount }}
+            </div>
+
+            <!-- القسم الأيمن: نموذج تسجيل عملية جديدة -->
+            <div class="col-lg-5 mb-4">
+                <div class="card card-custom p-4 shadow">
+                    <h5 class="mb-3 text-warning">➕ تسجيل عملية جديدة</h5>
+                    <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">👤 اسم صاحب العملية (المسؤول):</label>
+                            <input type="text" name="agent_name" class="form-control bg-dark text-white border-secondary" placeholder="أدخل اسم الشخص الذي أجرى العملية..." required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">📊 نوع العملية:</label>
+                            <select name="type" class="form-control bg-dark text-white border-secondary">
+                                <option value="إيداع">إيداع (+)</option>
+                                <option value="سحب">سحب (-)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">💰 المبلغ:</label>
+                            <input type="number" name="amount" class="form-control bg-dark text-white border-secondary" placeholder="0" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 fw-bold py-2 mt-2">💾 حفظ العملية</button>
+                    </form>
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="no-data">
-                لا توجد عمليات مسجلة حتى الآن.
-            </div>
-        {% endif %}
+        </div>
     </div>
 
 </body>
