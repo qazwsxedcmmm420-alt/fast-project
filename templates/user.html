@@ -5,44 +5,65 @@
     <title>إدارة حساب: {{ user.Name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { 
-            background-color: #12181b; 
-            color: #e2e8f0; 
-            font-family: Tahoma, sans-serif; 
-        }
-        .header-title {
-            color: #38bdf8;
-            font-weight: bold;
-        }
-        .content-card { 
-            background-color: #1e293b; 
-            border: 1px solid #334155; 
-            border-radius: 16px; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-        .table-dark-custom th {
-            background-color: #0f172a;
-            color: #38bdf8;
-            border-color: #334155;
-        }
-        .table-dark-custom td {
-            border-color: #334155;
-            color: #e2e8f0;
-        }
-        .form-control, .form-select {
-            background-color: #0f172a;
-            color: #fff;
-            border-color: #334155;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: #0f172a;
-            color: #fff;
-            border-color: #38bdf8;
-            box-shadow: none;
-        }
-        .text-positive { color: #22c55e !important; }
-        .text-negative { color: #ef4444 !important; }
-    </style>
+    body {
+        background-color: #12181b;
+        color: #e2e8f0;
+        font-family: Tahoma, sans-serif;
+    }
+    .header-title {
+        color: #38bdf8;
+        font-weight: bold;
+    }
+    .content-card {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* إلغاء اللون الأبيض نهائياً من الجدول وجعله داكناً وواضحاً */
+    .table-dark-custom {
+        background-color: #161e29 !important;
+        color: #ffffff !important;
+    }
+    .table-dark-custom th {
+        background-color: #1a2332 !important;
+        color: #38bdf8 !important;
+        border-color: #334155 !important;
+        text-align: center;
+        padding: 12px;
+    }
+    .table-dark-custom td {
+        background-color: #161e29 !important;
+        border-color: #2a3447 !important;
+        color: #ffffff !important; /* الكتابة بيضاء وواضحة تماماً */
+        text-align: center;
+        padding: 12px;
+    }
+    /* إلغاء تلوين الصفوف التلقائي لمنع ظهور اللون الأبيض */
+    .table-striped > tbody > tr:nth-of-type(odd) > * {
+        background-color: #161e29 !important;
+        color: #ffffff !important;
+    }
+    .table-hover > tbody > tr:hover > * {
+        background-color: #1f2b3c !important;
+        color: #ffffff !important;
+    }
+
+    .form-control, .form-select {
+        background-color: #0f172a;
+        color: #fff;
+        border-color: #334155;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #0f172a;
+        color: #fff;
+        border-color: #38bdf8;
+        box-shadow: none;
+    }
+    .text-positive { color: #22c55e !important; }
+    .text-negative { color: #ef4444 !important; }
+</style>
 </head>
 <body class="p-4">
 
