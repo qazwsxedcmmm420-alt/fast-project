@@ -61,7 +61,8 @@ def admin():
             for t in all_transactions:
                 t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or "").strip().lower()
 
-                if t_main_user == target_name or target_name in t_main_user or t_main_user in target_name:
+                # المطابقة التامة والصحيحة لمنع تداخل الحسابات
+                if t_main_user == target_name:
                     amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
                     try:
                         val = float(amt_str.replace(',', '').strip())
@@ -69,7 +70,7 @@ def admin():
                         val = 0.0
 
                     t_type = str(t.get("Type", "") or t.get("النوع", ""))
-                    if "سحب" in t_type or "(-)" in t_type:
+                    if "سحب" in t_type or "(-)" in t_type or "رفع" in t_type:
                         balance -= val
                     else:
                         balance += val
@@ -129,7 +130,8 @@ def user_dashboard(user_id):
         for t in all_transactions:
             t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or "").strip().lower()
 
-            if t_main_user == target_name or target_name in t_main_user or t_main_user in target_name:
+            # المطابقة التامة والصحيحة لمنع تداخل الحسابات
+            if t_main_user == target_name:
                 amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
                 try:
                     val = float(amt_str.replace(',', '').strip())
@@ -137,16 +139,23 @@ def user_dashboard(user_id):
                     val = 0.0
 
                 t_type = str(t.get("Type", "") or t.get("النوع", ""))
-                if "سحب" in t_type or "(-)" in t_type:
+                
+                # حساب الرصيد (الخصم لعمليات السحب والرفع، والإضافة للايداع)
+                if "سحب" in t_type or "(-)" in t_type or "رفع" in t_type:
                     total_balance -= val
                 else:
                     total_balance += val
+
+                # جلب اسم الوكيل أو الطرف الآخر بدقة ليعرض في الواجهة مثل الصورة
+                agent_val = str(t.get("Agent", "") or t.get("perforr", "") or t.get("اسم مسجل العملية", "")).strip()
+                if not agent_val:
+                    agent_val = t_type # احتياطياً إذا كان الحقل فارغاً
 
                 user_transactions.append({
                     "Date": str(t.get("Date", "") or t.get("التاريخ", "")),
                     "Amount": amt_str,
                     "Type": t_type,
-                    "Agent": str(t.get("Agent", "") or t.get("perforr", "") or t.get("اسم مسجل العملية", ""))
+                    "Agent": agent_val
                 })
 
         user_info["Balance"] = total_balance
@@ -190,7 +199,7 @@ def add_transaction(user_id):
 
 
 @app.route("/upload_profile_image/<user_id>", methods=["POST"])
-def upload_profile_image(user_id):
+-> upload_profile_image(user_id):
     try:
         if 'profile_image' in request.files:
             file = request.files['profile_image']
