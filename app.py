@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -25,8 +25,51 @@ def home():
 def admin():
     try:
         users_sheet = spreadsheet.worksheet("users")
-        users = users_sheet.get_all_records()
-        return render_template("admin_dashboard.html", users=users)
+        users_records = users_sheet.get_all_records()
+        
+        # جلب العمليات لحساب الأرصدة
+        try:
+            trans_sheet = spreadsheet.worksheet("transactions")
+        except:
+            try:
+                trans_sheet = spreadsheet.worksheet("Main_User")
+            except:
+                trans_sheet = spreadsheet.add_worksheet(title="transactions", rows="100", cols="5")
+                trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
+
+        all_transactions = trans_sheet.get_all_records()
+
+        # بناء قائمة مستخدمين آمنة تحتوي على Balance
+        users_list = []
+        for u in users_records:
+            # ضمان التعامل مع القاموس بشكل آمن وتلافي أي مشاكل في الأسماء
+            user_id = str(u.get("User_ID") or u.get("id") or "")
+            user_name = str(u.get("Name") or u.get("الاسم") or "")
+            profile_img = str(u.get("Profile_Image") or u.get("image") or "")
+
+            balance = 0.0
+            for t in all_transactions:
+                t_main_user = str(t.get("Main_User", "") or t.get("Name", "") or t.get("اسم المستخدم", ""))
+                if t_main_user == user_name:
+                    try:
+                        amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0")).replace(',', '')
+                        val = float(amt_str)
+                        t_type = str(t.get("Type", "") or t.get("النوع", ""))
+                        if "سحب" in t_type or "(-)" in t_type:
+                            balance -= val
+                        else:
+                            balance += val
+                    except:
+                        pass
+
+            users_list.append({
+                "User_ID": user_id,
+                "Name": user_name,
+                "Profile_Image": profile_img,
+                "Balance": balance
+            })
+
+        return render_template("admin_dashboard.html", users=users_list)
     except Exception as e:
         return f"خطأ في لوحة التحكم: {str(e)}", 500
 
@@ -38,12 +81,16 @@ def admin_logout():
 def user_dashboard(user_id):
     try:
         users_sheet = spreadsheet.worksheet("users")
-        users = users_sheet.get_all_records()
+        users_records = users_sheet.get_all_records()
         
         user_info = None
-        for u in users:
-            if str(u.get("User_ID")) == str(user_id):
-                user_info = u
+        for u in users_records:
+            if str(u.get("User_ID") or u.get("id") or "") == str(user_id):
+                user_info = {
+                    "User_ID": str(u.get("User_ID") or u.get("id") or ""),
+                    "Name": str(u.get("Name") or u.get("الاسم") or ""),
+                    "Profile_Image": str(u.get("Profile_Image") or u.get("image") or "")
+                }
                 break
                 
         if not user_info:
@@ -59,18 +106,32 @@ def user_dashboard(user_id):
                 trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
 
         all_transactions = trans_sheet.get_all_records()
-        user_name = user_info.get("Name")
+        user_name = user_info["Name"]
         
         user_transactions = []
+        total_balance = 0.0
         for t in all_transactions:
-            if str(t.get("Main_User", "")) == str(user_name) or str(t.get("Name", "")) == str(user_name):
+            t_main_user = str(t.get("Main_User", "") or t.get("Name", "") or t.get("اسم المستخدم", ""))
+            if t_main_user == user_name:
+                amt = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
+                t_type = str(t.get("Type", "") or t.get("النوع", ""))
+                try:
+                    val = float(amt.replace(',', ''))
+                    if "سحب" in t_type or "(-)" in t_type:
+                        total_balance -= val
+                    else:
+                        total_balance += val
+                except:
+                    pass
+
                 user_transactions.append({
-                    "Date": t.get("Date", "") or t.get("التاريخ", ""),
-                    "Amount": t.get("Amount", "0") or t.get("المبلغ", "0"),
-                    "Type": t.get("Type", "") or t.get("النوع", ""),
-                    "Agent": t.get("perforr", "") or t.get("Agent", "") or t.get("اسم مسجل العملية", "")
+                    "Date": str(t.get("Date", "") or t.get("التاريخ", "")),
+                    "Amount": amt,
+                    "Type": t_type,
+                    "Agent": str(t.get("perforr", "") or t.get("Agent", "") or t.get("اسم مسجل العملية", ""))
                 })
 
+        user_info["Balance"] = total_balance
         return render_template("user.html", user=user_info, transactions=user_transactions)
     except Exception as e:
         return f"خطأ في حساب المستخدم: {str(e)}", 500
@@ -83,11 +144,11 @@ def add_transaction(user_id):
         amount = request.form.get("amount", "0")
         
         users_sheet = spreadsheet.worksheet("users")
-        users = users_sheet.get_all_records()
+        users_records = users_sheet.get_all_records()
         user_name = ""
-        for u in users:
-            if str(u.get("User_ID")) == str(user_id):
-                user_name = u.get("Name")
+        for u in users_records:
+            if str(u.get("User_ID") or u.get("id") or "") == str(user_id):
+                user_name = str(u.get("Name") or u.get("الاسم") or "")
                 break
                 
         try:
@@ -131,7 +192,7 @@ def upload_profile_image(user_id):
                 records = users_sheet.get_all_records()
                 row_index = None
                 for idx, u in enumerate(records, start=2):
-                    if str(u.get("User_ID")) == str(user_id):
+                    if str(u.get("User_ID") or u.get("id") or "") == str(user_id):
                         row_index = idx
                         break
                 
