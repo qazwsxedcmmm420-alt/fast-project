@@ -8,9 +8,17 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-# إعداد اتصال Google Sheets
+# إعداد اتصال Google Sheets بشكل آمن عبر متغيرات البيئة
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+
+creds_json_str = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+if creds_json_str:
+    creds_dict = json.loads(creds_json_str)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+else:
+    # محلياً على جهازك إذا احتجت للتجربة (تأكد من وجود الملف محلياً إن أردت، أو اعتمد على المتغير)
+    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+
 client = gspread.authorize(creds)
 spreadsheet = client.open("Deposit App Database")
 
