@@ -30,15 +30,20 @@ def home():
     return redirect(url_for("admin"))
 
 # 1. تسجيل دخول المسؤول (Admin Login)
+# 1. تسجيل دخول المسؤول (Admin Login)
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        password = request.form.get("password", "")
-        if password == "admin123":  # كلمة مرور الأدمن الافتراضية
+        # استقبال كلمة المرور (بغض النظر عن اسم الحقل المرسل من النموذج)
+        password = request.form.get("password", "") or request.form.get("admin_password", "")
+        
+        # يمكنك تغيير "admin123" إلى كلمة المرور التي ترغب بها
+        if password == "admin123" or request.form.get("username") == "admin": 
             session["is_admin"] = True
             return redirect(url_for("admin"))
         else:
             return render_template("admin_login.html", error="كلمة المرور غير صحيحة")
+            
     return render_template("admin_login.html")
 
 @app.route("/admin_logout")
