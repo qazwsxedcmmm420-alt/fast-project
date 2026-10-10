@@ -30,9 +30,9 @@
             width: 20%;
         }
 
-        /* تقليل الأحجام لتصبح البطاقات والأيقونات أصغر وأرتب */
+        /* البطاقات والأيقونات */
         .user-card {
-            padding: 12px !important;
+            padding: 14px !important;
             border-radius: 12px !important;
             transition: transform 0.2s ease-in-out;
         }
@@ -41,24 +41,34 @@
             transform: translateY(-3px);
         }
 
+        /* توضيح العنوان والمبلغ */
+        .balance-label {
+            color: #94a3b8 !important; /* لون رمادي فاتح وواضح */
+            font-size: 0.85rem !important;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .balance-amount {
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: inline-block;
+            direction: ltr; /* لضبط اتجاه الإشارة الرقمية والعملة */
+        }
+
         .text-positive { color: #22c55e !important; }
         .text-negative { color: #ef4444 !important; }
 
         /* تجاوب البطاقات للشاشات المتوسطة والصغيرة */
         @media (max-width: 992px) {
-            .col-custom-5 {
-                width: 33.333%;
-            }
+            .col-custom-5 { width: 33.333%; }
         }
         @media (max-width: 768px) {
-            .col-custom-5 {
-                width: 50%;
-            }
+            .col-custom-5 { width: 50%; }
         }
         @media (max-width: 576px) {
-            .col-custom-5 {
-                width: 100%;
-            }
+            .col-custom-5 { width: 100%; }
         }
     </style>
 </head>
@@ -85,11 +95,15 @@
                             </div>
                         {% endif %}
 
-                        <h5 class="text-light fw-bold mb-1" style="font-size: 0.95rem;">{{ user.Name }}</h5>
-                        <p class="text-muted small mb-1" style="font-size: 0.8rem;">المبلغ الكلي في الحساب</p>
-                        <span class="fw-bold {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                            ${{ user.Balance }}
-                        </span>
+                        <h5 class="text-light fw-bold mb-1" style="font-size: 1rem;">{{ user.Name }}</h5>
+                        
+                        <!-- النص التوضيحي للمبلغ -->
+                        <span class="balance-label">المبلغ الكلي في الحساب</span>
+                        
+                        <!-- المبلغ المالي بشكل واضح مع فواصل الألوف برقم صحيح وصريح -->
+                        <div class="balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
+                            ${{ "{:,.0f}".format(user.Balance) }}
+                        </div>
                     </div>
                 </a>
             </div>
