@@ -4,98 +4,97 @@
     <meta charset="UTF-8">
     <title>لوحة التحكم - قائمة المستخدمين</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-    /* جعل الحاوية تتسع لـ 5 عناصر في السطر للشاشات المتوسطة والكبيرة */
-    .col-custom-5 {
-        flex: 0 0 auto;
-        width: 20%; /* 100% / 5 = 20% لكل بطاقة */
-    }
-
-    /* تقليل الأحجام لتصبح البطاقات والأيقونات أرق وأصغر */
-    .user-card {
-        padding: 12px !important;
-        border-radius: 12px !important;
-    }
-
-    .user-card .avatar-icon {
-        width: 45px;
-        height: 45px;
-        font-size: 20px;
-        margin-bottom: 8px;
-    }
-
-    .user-card h5 {
-        font-size: 0.95rem;
-        margin-bottom: 4px;
-    }
-
-    .user-card p {
-        font-size: 0.8rem;
-        margin-bottom: 2px;
-    }
-
-    /* لتنسيق الشاشات الصغيرة (الهواتف) لتكون عنصرين فقط */
-    @media (max-width: 992px) {
-        .col-custom-5 {
-            width: 50%;
+        body {
+            background-color: #12181b;
+            color: #e2e8f0;
+            font-family: Tahoma, sans-serif;
         }
-    }
-    @media (max-width: 576px) {
-        .col-custom-5 {
-            width: 100%;
+
+        .header-title {
+            color: #38bdf8;
+            font-weight: bold;
         }
-    }
-</style>
+
+        .content-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* جعل الحاوية تتسع لـ 5 عناصر في السطر للشاشات الكبيرة */
+        .col-custom-5 {
+            flex: 0 0 auto;
+            width: 20%;
+        }
+
+        /* تقليل الأحجام لتصبح البطاقات والأيقونات أصغر وأرتب */
+        .user-card {
+            padding: 12px !important;
+            border-radius: 12px !important;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .text-positive { color: #22c55e !important; }
+        .text-negative { color: #ef4444 !important; }
+
+        /* تجاوب البطاقات للشاشات المتوسطة والصغيرة */
+        @media (max-width: 992px) {
+            .col-custom-5 {
+                width: 33.333%;
+            }
+        }
+        @media (max-width: 768px) {
+            .col-custom-5 {
+                width: 50%;
+            }
+        }
+        @media (max-width: 576px) {
+            .col-custom-5 {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body class="p-4">
-
-    <div class="container">
+    <div class="container-fluid">
         <!-- رأس الصفحة -->
-        <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
             <h2 class="header-title">قائمة المستخدمين</h2>
             <a href="{{ url_for('admin_logout') }}" class="btn btn-danger btn-sm px-4">تسجيل الخروج</a>
         </div>
 
-        <!-- شبكة عرض المستخدمين -->
+        <!-- شبكة عرض المستخدمين (5 في السطر) -->
         <div class="row g-3">
-    {% for user in users %}
-    <div class="col-custom-5">
-        <a href="{{ url_for('user_dashboard', user_id=user.User_ID) }}" class="text-decoration-none">
-            <div class="content-card user-card text-center p-3 h-100">
-                <!-- صورة أو أيقونة المستخدم -->
-                {% if user.Profile_Image %}
-                    <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 45px; height: 45px; object-fit: cover;">
-                {% else %}
-                    <div class="avatar-icon bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
-                        <i class="bi bi-person-fill"></i>
-                    </div>
-                {% endif %}
+            {% for user in users %}
+            <div class="col-custom-5">
+                <a href="{{ url_for('user_dashboard', user_id=user.User_ID) }}" class="text-decoration-none">
+                    <div class="content-card user-card text-center p-3 h-100">
+                        <!-- صورة أو أيقونة المستخدم -->
+                        {% if user.Profile_Image %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 45px; height: 45px; object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-icon bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2 mx-auto" style="width: 45px; height: 45px; font-size: 20px;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        {% endif %}
 
-                <h5 class="text-light fw-bold mb-1">{{ user.Name }}</h5>
-                <p class="text-muted small mb-1">المبلغ الكلي في الحساب</p>
-                <span class="fw-bold {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                    ${{ user.Balance }}
-                </span>
-            </div>
-        </a>
-    </div>
-    {% endfor %}
-</div>
-
-                        <!-- اسم المستخدم -->
-                        <div class="user-name">{{ user.Name }}</div>
-                        
-                        <!-- التسمية والرصيد -->
-                        <div class="balance-label">المبلغ الكلي في الحساب</div>
-                        <div class="fs-5 fw-bold {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                            ${{ "%.1f"|format(user.Balance) }}
-                        </div>
+                        <h5 class="text-light fw-bold mb-1" style="font-size: 0.95rem;">{{ user.Name }}</h5>
+                        <p class="text-muted small mb-1" style="font-size: 0.8rem;">المبلغ الكلي في الحساب</p>
+                        <span class="fw-bold {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
+                            ${{ user.Balance }}
+                        </span>
                     </div>
                 </a>
             </div>
             {% endfor %}
         </div>
     </div>
-
 </body>
 </html>
