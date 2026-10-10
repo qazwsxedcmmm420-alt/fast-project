@@ -201,10 +201,11 @@ def add_transaction(user_id):
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # إضافتها في الصف الثاني (البداية تحت الهيدر مباشرة)
+        # إضافة العملية في الصف الثاني (البداية)
         trans_sheet.insert_row([user_name, agent_name, trans_type, amount, current_time], 2)
 
-        return redirect(url_for("admin"))
+        # البقاء في نفس الصفحة التي أُجريت منها العملية وعدم الانتقال للخارج
+        return redirect(request.referrer or url_for("admin"))
     except Exception as e:
         return f"حدث خطأ أثناء إضافة العملية: {str(e)}", 500
 
