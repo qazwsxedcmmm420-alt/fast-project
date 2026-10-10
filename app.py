@@ -1,4 +1,4 @@
-import os
+، import os
 import json
 from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -15,7 +15,6 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds_json_str = os.environ.get("GOOGLE_CREDENTIALS_JSON")
 if creds_json_str:
     creds_dict = json.loads(creds_json_str)
-    print("CURRENT SERVICE ACCOUNT EMAIL:", creds_dict.get("client_email"))
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 else:
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
@@ -51,18 +50,19 @@ def admin():
         users_list = []
 
         for u in users_records:
-            user_id = str(u.get("User_ID") or u.get("id") or "")
+            user_id = str(u.get("User_ID") or u.get("id") or "").strip()
             user_name = str(u.get("Name") or u.get("اسم") or "").strip()
             profile_img = str(u.get("Profile_Image") or u.get("image") or "")
 
             balance = 0.0
-            target_name = " ".join(user_name.lower().split())
+            target_name = user_name.lower()
 
             for t in all_transactions:
-                t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip()
-                t_main_user_clean = " ".join(t_main_user.lower().split())
+                t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip().lower()
+                t_user_id = str(t.get("User_ID") or t.get("id") or "").strip()
 
-                if target_name and t_main_user_clean and (target_name == t_main_user_clean or target_name in t_main_user_clean or t_main_user_clean in target_name):
+                # المطابقة إما بالاسم أو برقم الـ ID لضمان عدم ضياع أي عملية
+                if (target_name and target_name in t_main_user) or (user_id and user_id == t_user_id):
                     amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
                     try:
                         val = float(amt_str.replace(',', '').strip())
@@ -101,9 +101,9 @@ def user_dashboard(user_id):
 
         user_info = None
         for u in users_records:
-            if str(u.get("User_ID") or u.get("id") or "") == str(user_id):
+            if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
                 user_info = {
-                    "User_ID": str(u.get("User_ID") or u.get("id") or ""),
+                    "User_ID": str(u.get("User_ID") or u.get("id") or "").strip(),
                     "Name": str(u.get("Name") or u.get("اسم") or "").strip(),
                     "Profile_Image": str(u.get("Profile_Image") or u.get("image") or "")
                 }
@@ -125,15 +125,14 @@ def user_dashboard(user_id):
         user_transactions = []
         total_balance = 0.0
 
-        target_name = " ".join(user_info["Name"].lower().split())
+        target_name = user_info["Name"].lower()
 
         for t in all_transactions:
-            # فحص كافة الاحتمالات لأسماء الأعمدة في شيت العمليات
-            t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip()
-            t_main_user_clean = " ".join(t_main_user.lower().split())
+            t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip().lower()
+            t_user_id = str(t.get("User_ID") or t.get("id") or "").strip()
 
-            # مطابقة مرنة للتاكد من جلب عمليات المستخدم بدقة
-            if target_name and t_main_user_clean and (target_name == t_main_user_clean or target_name in t_main_user_clean or t_main_user_clean in target_name):
+            # مطابقة ذكية تعتمد على الاسم أو الـ ID
+            if (target_name and target_name in t_main_user) or (str(user_id) == t_user_id):
                 amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
                 try:
                     val = float(amt_str.replace(',', '').strip())
@@ -177,7 +176,7 @@ def add_transaction(user_id):
         user_name = ""
 
         for u in users_records:
-            if str(u.get("User_ID") or u.get("id") or "") == str(user_id):
+            if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
                 user_name = str(u.get("Name") or u.get("اسم") or "").strip()
                 break
 
@@ -221,7 +220,7 @@ def upload_profile_image(user_id):
                 row_index = None
 
                 for idx, u in enumerate(records, start=2):
-                    if str(u.get("User_ID") or u.get("id") or "") == str(user_id):
+                    if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
                         row_index = idx
                         break
 
