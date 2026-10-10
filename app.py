@@ -200,7 +200,9 @@ def add_transaction(user_id):
                 trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        trans_sheet.append_row([user_name, agent_name, trans_type, amount, current_time])
+        
+        # إضافتها في الصف الثاني (البداية تحت الهيدر مباشرة)
+        trans_sheet.insert_row([user_name, agent_name, trans_type, amount, current_time], 2)
 
         return redirect(url_for("admin"))
     except Exception as e:
