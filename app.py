@@ -32,7 +32,6 @@ def home():
     return redirect(url_for("admin"))
 
 
-# 1. لوحة تحكم المسؤول (Admin) - يملك صلاحية رؤية الكل وتسجيل وإدارة العمليات
 @app.route("/admin")
 def admin():
     try:
@@ -60,7 +59,7 @@ def admin():
             target_name = " ".join(user_name.lower().split())
 
             for t in all_transactions:
-                t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or "").strip()
+                t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip()
                 t_main_user_clean = " ".join(t_main_user.lower().split())
 
                 if target_name and t_main_user_clean and (target_name == t_main_user_clean or target_name in t_main_user_clean or t_main_user_clean in target_name):
@@ -94,7 +93,6 @@ def admin_logout():
     return redirect(url_for("admin"))
 
 
-# 2. صفحة المستخدم (User Dashboard) - مستقلة تماماً وللعرض فقط (Read-only) بدون صلاحية تعديل أو إضافة
 @app.route("/user/<user_id>")
 def user_dashboard(user_id):
     try:
@@ -130,9 +128,11 @@ def user_dashboard(user_id):
         target_name = " ".join(user_info["Name"].lower().split())
 
         for t in all_transactions:
-            t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or "").strip()
+            # فحص كافة الاحتمالات لأسماء الأعمدة في شيت العمليات
+            t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip()
             t_main_user_clean = " ".join(t_main_user.lower().split())
 
+            # مطابقة مرنة للتاكد من جلب عمليات المستخدم بدقة
             if target_name and t_main_user_clean and (target_name == t_main_user_clean or target_name in t_main_user_clean or t_main_user_clean in target_name):
                 amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
                 try:
@@ -165,7 +165,6 @@ def user_dashboard(user_id):
         return f"خطأ في حساب المستخدم: {str(e)}", 500
 
 
-# 3. دالة تسجيل العمليات الخاصة بالأدمن فقط
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
     try:
@@ -194,7 +193,6 @@ def add_transaction(user_id):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         trans_sheet.append_row([user_name, agent_name, trans_type, amount, current_time])
 
-        # إعادة التوجيه إلى صفحة الأدمن أو لوحة الإدارة
         return redirect(url_for("admin"))
     except Exception as e:
         return f"حدث خطأ أثناء إضافة العملية: {str(e)}", 500
