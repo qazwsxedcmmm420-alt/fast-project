@@ -46,7 +46,11 @@ def admin():
                 trans_sheet = spreadsheet.add_worksheet(title="transactions", rows="100", cols="5")
                 trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
 
-        all_transactions = trans_sheet.get_all_records()
+        # جلب جميع صفوف العمليات كقوائم (لتجاوز مشاكل تطابق الهيدر)
+        trans_rows = trans_sheet.get_all_values()
+        # تخطي صف العناوين الأول
+        trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
+
         users_list = []
 
         for u in users_records:
@@ -57,19 +61,21 @@ def admin():
             balance = 0.0
             target_name = user_name.lower()
 
-            for t in all_transactions:
-                t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip().lower()
-                t_user_id = str(t.get("User_ID") or t.get("id") or "").strip()
-
-                # المطابقة إما بالاسم أو برقم الـ ID لضمان عدم ضياع أي عملية
-                if (target_name and target_name in t_main_user) or (user_id and user_id == t_user_id):
-                    amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
+            for row in trans_data:
+                if len(row) < 4:
+                    continue
+                
+                t_main_user = str(row[0]).strip().lower() # العمود الأول: اسم المستخدم الرئيسي
+                
+                # مطابقة مرنة بالاسم
+                if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
+                    amt_str = str(row[3]).strip() if len(row) > 3 else "0" # العمود الرابع: المبلغ
                     try:
                         val = float(amt_str.replace(',', '').strip())
                     except ValueError:
                         val = 0.0
 
-                    t_type = str(t.get("Type", "") or t.get("النوع", ""))
+                    t_type = str(row[2]).strip() if len(row) > 2 else "" # العمود الثالث: النوع
                     if "سحب" in t_type or "(-)" in t_type or "رفع" in t_type:
                         balance -= val
                     else:
@@ -121,37 +127,41 @@ def user_dashboard(user_id):
                 trans_sheet = spreadsheet.add_worksheet(title="transactions", rows="100", cols="5")
                 trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
 
-        all_transactions = trans_sheet.get_all_records()
+        trans_rows = trans_sheet.get_all_values()
+        trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
+
         user_transactions = []
         total_balance = 0.0
-
         target_name = user_info["Name"].lower()
 
-        for t in all_transactions:
-            t_main_user = str(t.get("Main_User") or t.get("Name") or t.get("اسم المستخدم") or t.get("اسم") or "").strip().lower()
-            t_user_id = str(t.get("User_ID") or t.get("id") or "").strip()
+        for row in trans_data:
+            if len(row) < 4:
+                continue
 
-            # مطابقة ذكية تعتمد على الاسم أو الـ ID
-            if (target_name and target_name in t_main_user) or (str(user_id) == t_user_id):
-                amt_str = str(t.get("Amount", "0") or t.get("المبلغ", "0"))
+            t_main_user = str(row[0]).strip().lower() # العمود الأول: اسم المستخدم الرئيسي
+
+            if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
+                amt_str = str(row[3]).strip() if len(row) > 3 else "0" # العمود الرابع: المبلغ
                 try:
                     val = float(amt_str.replace(',', '').strip())
                 except ValueError:
                     val = 0.0
 
-                t_type = str(t.get("Type", "") or t.get("النوع", ""))
+                t_type = str(row[2]).strip() if len(row) > 2 else "" # العمود الثالث: النوع
                 
                 if "سحب" in t_type or "(-)" in t_type or "رفع" in t_type:
                     total_balance -= val
                 else:
                     total_balance += val
 
-                agent_val = str(t.get("Agent", "") or t.get("perforr", "") or t.get("اسم مسجل العملية", "")).strip()
+                agent_val = str(row[1]).strip() if len(row) > 1 else "" # العمود الثاني: الوكيل
                 if not agent_val:
                     agent_val = t_type
 
+                date_val = str(row[4]).strip() if len(row) > 4 else "" # العمود الخامس: التاريخ
+
                 user_transactions.append({
-                    "Date": str(t.get("Date", "") or t.get("التاريخ", "")),
+                    "Date": date_val,
                     "Amount": amt_str,
                     "Type": t_type,
                     "Agent": agent_val
