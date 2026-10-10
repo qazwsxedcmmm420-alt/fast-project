@@ -2,102 +2,115 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة حساب: {{ user.Name }}</title>
+    <title>إدارة الحساب - {{ user.Name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-    body {
-        background-color: #12181b;
-        color: #e2e8f0;
-        font-family: Tahoma, sans-serif;
-    }
-    .header-title {
-        color: #38bdf8;
-        font-weight: bold;
-    }
-    .content-card {
-        background-color: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* إلغاء اللون الأبيض نهائياً من الجدول وجعله داكناً وواضحاً */
-    .table-dark-custom {
-        background-color: #161e29 !important;
-        color: #ffffff !important;
-    }
-    .table-dark-custom th {
-        background-color: #1a2332 !important;
-        color: #38bdf8 !important;
-        border-color: #334155 !important;
-        text-align: center;
-        padding: 12px;
-    }
-    .table-dark-custom td {
-        background-color: #161e29 !important;
-        border-color: #2a3447 !important;
-        color: #ffffff !important; /* الكتابة بيضاء وواضحة تماماً */
-        text-align: center;
-        padding: 12px;
-    }
-    /* إلغاء تلوين الصفوف التلقائي لمنع ظهور اللون الأبيض */
-    .table-striped > tbody > tr:nth-of-type(odd) > * {
-        background-color: #161e29 !important;
-        color: #ffffff !important;
-    }
-    .table-hover > tbody > tr:hover > * {
-        background-color: #1f2b3c !important;
-        color: #ffffff !important;
-    }
+        body {
+            background-color: #12181b;
+            color: #e2e8f0;
+            font-family: Tahoma, sans-serif;
+        }
+        .header-title {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+        .content-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
 
-    .form-control, .form-select {
-        background-color: #0f172a;
-        color: #fff;
-        border-color: #334155;
-    }
-    .form-control:focus, .form-select:focus {
-        background-color: #0f172a;
-        color: #fff;
-        border-color: #38bdf8;
-        box-shadow: none;
-    }
-    .text-positive { color: #22c55e !important; }
-    .text-negative { color: #ef4444 !important; }
-</style>
+        /* تنسيق جدول العمليات الداكن والواضح */
+        .table-dark-custom {
+            background-color: #161e29 !important;
+            color: #ffffff !important;
+        }
+        .table-dark-custom th {
+            background-color: #1a2332 !important;
+            color: #38bdf8 !important;
+            border-color: #334155 !important;
+            text-align: center;
+            padding: 12px;
+        }
+        .table-dark-custom td {
+            background-color: #161e29 !important;
+            border-color: #2a3447 !important;
+            color: #ffffff !important;
+            text-align: center;
+            padding: 12px;
+            vertical-align: middle;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: #161e29 !important;
+            color: #ffffff !important;
+        }
+        .table-hover > tbody > tr:hover > * {
+            background-color: #1f2b3c !important;
+            color: #ffffff !important;
+        }
+
+        .form-control, .form-select {
+            background-color: #0f172a;
+            color: #fff;
+            border-color: #334155;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #0f172a;
+            color: #fff;
+            border-color: #38bdf8;
+            box-shadow: none;
+        }
+
+        /* تنسيق الرصيد */
+        .balance-label {
+            color: #94a3b8 !important;
+            font-size: 0.9rem;
+        }
+        .balance-amount {
+            direction: ltr;
+            display: inline-block;
+        }
+
+        .text-positive { color: #22c55e !important; }
+        .text-negative { color: #ef4444 !important; }
+    </style>
 </head>
 <body class="p-4">
-
     <div class="container-fluid">
         <!-- رأس الصفحة -->
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
             <div>
-                <h2 class="header-title d-inline-block me-3">حساب: {{ user.Name }}</h2>
-                <span class="fs-5 fw-bold {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                    المبلغ الكلي: ${{ "%.1f"|format(user.Balance) }}
+                <h2 class="header-title d-inline-block me-3">{{ user.Name }}</h2>
+                <span class="balance-label ms-2">المبلغ الكلي في الحساب: </span>
+                <span class="fs-4 fw-bold balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
+                    ${{ "{:,.0f}".format(user.Balance) }}
                 </span>
             </div>
-            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm px-4">العودة لوحة التحكم</a>
+            <div>
+                <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm px-4">العودة للوحة التحكم</a>
+            </div>
         </div>
 
         <div class="row g-4">
-            <!-- القسم الأول: قائمة تسجيل عملية جديدة -->
+            <!-- القسم الأول: تسجيل عملية جديدة -->
             <div class="col-lg-4">
                 <div class="content-card p-4">
-                    <h4 class="mb-3 text-warning">💳 تسجيل عملية جديدة</h4>
+                    <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
                     <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
                         <div class="mb-3">
-                            <label class="form-label text-light">اسم مسجل العملية:</label>
+                            <label class="form-label text-light">اسم مسجل العملية</label>
                             <input type="text" name="agent_name" class="form-control" placeholder="أدخل اسمك أو اسم الموظف..." required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-light">نوع العملية:</label>
+                            <label class="form-label text-light">نوع العملية</label>
                             <select name="type" class="form-select" required>
                                 <option value="إيداع (+)">إيداع (+)</option>
                                 <option value="سحب (-)">سحب (-)</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-light">المبلغ:</label>
+                            <label class="form-label text-light">المبلغ</label>
                             <input type="number" step="any" name="amount" class="form-control" placeholder="أدخل المبلغ..." required>
                         </div>
                         <button type="submit" class="btn btn-success w-100 py-2 fw-bold">حفظ العملية</button>
@@ -108,8 +121,7 @@
             <!-- القسم الثاني: سجل العمليات السابقة -->
             <div class="col-lg-8">
                 <div class="content-card p-4">
-                    <h4 class="mb-4 text-info">📋 سجل العمليات السابقة</h4>
-                    
+                    <h4 class="mb-4 text-info">سجل العمليات السابقة</h4>
                     <div class="table-responsive">
                         <table class="table table-dark-custom table-striped table-hover align-middle text-center">
                             <thead>
@@ -126,11 +138,13 @@
                                     <tr>
                                         <td>{{ t.Agent }}</td>
                                         <td>
-                                            <span class="badge {% if 'إيداع' in t.Type %}bg-success{% else %}bg-danger{% endif %}">
+                                            <span class="badge {% if 'إيداع' in t.Type %}bg-success{% else %}bg-danger{% endif %} fs-6 px-3 py-2">
                                                 {{ t.Type }}
                                             </span>
                                         </td>
-                                        <td class="fw-bold">{{ t.Amount }}</td>
+                                        <td class="fw-bold fs-6 balance-amount">
+                                            ${{ "{:,.0f}".format(t.Amount|float) if t.Amount else "0" }}
+                                        </td>
                                         <td class="text-muted small">{{ t.Date }}</td>
                                     </tr>
                                     {% endfor %}
@@ -146,6 +160,5 @@
             </div>
         </div>
     </div>
-
 </body>
 </html>
