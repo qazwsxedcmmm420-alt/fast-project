@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>لوحة التحكم - إدارة المستخدمين</title>
-    <!-- استدعاء Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { 
@@ -15,62 +14,34 @@
             color: #38bdf8;
             font-weight: bold;
         }
+        /* تحويل البطاقة بالكامل لتبدو قابلة للضغط */
+        .user-card-link {
+            text-decoration: none;
+            display: block;
+        }
         .user-card { 
             background-color: #1e293b; 
             border: 1px solid #334155; 
             border-radius: 16px; 
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
         }
         .user-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
             border-color: #38bdf8;
+            background-color: #26354a;
         }
-        .avatar-placeholder {
-            width: 70px;
-            height: 70px;
-            background-color: #334155;
-            color: #38bdf8;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin: 0 auto 15px auto;
-        }
-        .user-img {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
+        .profile-img {
+            width: 80px;
+            height: 80px;
             object-fit: cover;
-            margin: 0 auto 15px auto;
+            border-radius: 50%;
             border: 2px solid #38bdf8;
         }
-        .form-control {
-            background-color: #0f172a !important;
-            color: #e2e8f0 !important;
-            border: 1px solid #334155 !important;
-            font-size: 13px;
-        }
-        .form-control:focus {
-            border-color: #38bdf8 !important;
-            box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.25);
-        }
-        .btn-custom {
-            background-color: #0d9488;
-            border: none;
-            color: #fff;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .btn-custom:hover {
-            background-color: #0f766e;
-            color: #fff;
-        }
+        .text-positive { color: #22c55e !important; }
+        .text-negative { color: #ef4444 !important; }
     </style>
 </head>
-<body class="p-5">
+<body class="p-4">
 
     <div class="container">
         <!-- رأس الصفحة -->
@@ -79,33 +50,41 @@
             <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-danger btn-sm px-4">تسجيل الخروج</a>
         </div>
 
-        <!-- شبكة بطاقات المستخدمين -->
+        <!-- شبكة عرض المستخدمين -->
         <div class="row g-4">
-            {% for u in users %}
-            <div class="col-md-3 col-sm-6">
-                <div class="user-card p-4 text-center">
-                    
-                    <!-- صورة المستخدم أو الأيقونة الافتراضية -->
-                    {% if u.Profile_Image %}
-                        <img src="{{ url_for('static', filename='uploads/' + u.Profile_Image) }}" class="user-img" alt="صورة المستخدم">
-                    {% else %}
-                        <div class="avatar-placeholder">👤</div>
-                    {% endif %}
-
-                    <h5 class="fw-bold mb-2 text-white">{{ u.Name }}</h5>
-                    <p class="text-muted small mb-3">المبلغ الكلي في الحساب:<br><span class="text-success fw-bold fs-6">${{ u.Total_Balance | default('0') }}</span></p>
-
-                    <!-- نموذج رفع وتحديث الصورة الشخصية -->
-                    <form action="{{ url_for('upload_profile_image', user_id=u.User_ID) }}" method="POST" enctype="multipart/form-data">
-                        <div class="mb-2">
-                            <input type="file" name="profile_image" class="form-control form-control-sm" required>
+            {% for user in users %}
+            <div class="col-md-4">
+                <!-- البطاقة بالكامل أصبحت رابطاً يؤدي لصفحة العمليات -->
+                <a href="{{ url_for('user_dashboard', user_id=user.User_ID) }}" class="user-card-link">
+                    <div class="user-card p-4 text-center shadow-sm">
+                        <!-- الصورة الشخصية -->
+                        <div class="mb-3" onclick="event.stopPropagation();">
+                            {% if user.Profile_Image %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="profile-img mb-2" alt="صورة المستخدم">
+                            {% else %}
+                                <div class="profile-img bg-secondary d-inline-flex align-items-center justify-content-center text-white mb-2 fs-4">
+                                    {{ user.Name[0] }}
+                                </div>
+                            @endif
+                            <h4 class="text-white mt-2">{{ user.Name }}</h4>
+                            
+                            <!-- الرصيد الحالي مع الألوان -->
+                            <p class="fs-5 fw-bold mb-3 {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
+                                الرصيد: {{ "%.2f"|format(user.Balance) }} $
+                            </p>
                         </div>
-                        <button type="submit" class="btn btn-custom btn-sm w-100 py-1">حفظ الصورة الشخصية</button>
-                    </form>
 
-                    <!-- زر الانتقال للوحة حساب المستخدم -->
-                    <a href="{{ url_for('user_dashboard', user_id=user_id if user_id is defined else u.User_ID) }}" class="btn btn-outline-info btn-sm w-100 mt-2">إدارة الحساب والعمليات</a>
-                </div>
+                        <!-- نموذج رفع الصورة (مفصول لكي لا يفتح صفحة الحساب عند الضغط عليه) -->
+                        <div onclick="event.stopPropagation();">
+                            <form action="{{ url_for('upload_profile_image', user_id=user.User_ID) }}" method="POST" enctype="multipart/form-data">
+                                <div class="input-group input-group-sm">
+                                    <input type="file" name="profile_image" class="form-control form-control-sm bg-dark text-light border-secondary" required>
+                                    <button type="submit" class="btn btn-outline-info">حفظ الصورة</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </a>
             </div>
             {% endfor %}
         </div>
