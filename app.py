@@ -140,16 +140,14 @@ def user_dashboard(user_id):
 
                 t_type = str(t.get("Type", "") or t.get("النوع", ""))
                 
-                # حساب الرصيد (الخصم لعمليات السحب والرفع، والإضافة للايداع)
                 if "سحب" in t_type or "(-)" in t_type or "رفع" in t_type:
                     total_balance -= val
                 else:
                     total_balance += val
 
-                # جلب اسم الوكيل أو الطرف الآخر بدقة ليعرض في الواجهة مثل الصورة
                 agent_val = str(t.get("Agent", "") or t.get("perforr", "") or t.get("اسم مسجل العملية", "")).strip()
                 if not agent_val:
-                    agent_val = t_type # احتياطياً إذا كان الحقل فارغاً
+                    agent_val = t_type
 
                 user_transactions.append({
                     "Date": str(t.get("Date", "") or t.get("التاريخ", "")),
@@ -199,7 +197,7 @@ def add_transaction(user_id):
 
 
 @app.route("/upload_profile_image/<user_id>", methods=["POST"])
--> upload_profile_image(user_id):
+def upload_profile_image(user_id):
     try:
         if 'profile_image' in request.files:
             file = request.files['profile_image']
