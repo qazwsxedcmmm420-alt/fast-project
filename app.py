@@ -15,9 +15,10 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds_json_str = os.environ.get("GOOGLE_CREDENTIALS_JSON")
 if creds_json_str:
     creds_dict = json.loads(creds_json_str)
+    # طباعة البريد الإلكتروني للتحقق في سجلات Render
+    print("CURRENT SERVICE ACCOUNT EMAIL:", creds_dict.get("client_email"))
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 else:
-    # محلياً على جهازك إذا احتجت للتجربة (تأكد من وجود الملف محلياً إن أردت، أو اعتمد على المتغير)
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
 
 client = gspread.authorize(creds)
