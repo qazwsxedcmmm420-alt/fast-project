@@ -370,5 +370,13 @@ def manifest():
 def service_worker():
     return send_from_directory("static", "sw.js")
 
+    @app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('static', 'sw.js')
+
 if __name__ == "__main__":
     app.run(debug=True)
