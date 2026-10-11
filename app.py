@@ -283,8 +283,12 @@ def my_account():
         return redirect(url_for("user_login"))
         
     user_id = session["user_id"]
-    users_sheet = spreadsheet.worksheet("users")
-    users_records = users_sheet.get_all_records()
+    
+    try:
+        users_sheet = spreadsheet.worksheet("users")
+        users_records = users_sheet.get_all_records()
+    except Exception:
+        return render_template("login.html", error="خطأ في الاتصال بقاعدة البيانات")
     
     current_user = None
     for u in users_records:
@@ -313,34 +317,37 @@ def my_account():
     target_name = current_user["Name"].lower()
 
     if trans_sheet:
-        trans_rows = trans_sheet.get_all_values()
-        trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
-        for row in trans_data:
-            if len(row) < 4:
-                continue
-            t_main_user = str(row[0]).strip().lower()
-            if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
-                agent_val = str(row[1]).strip() if len(row) > 1 else ""
-                t_type = str(row[2]).strip() if len(row) > 2 else ""
-                amt_str = str(row[3]).strip() if len(row) > 3 else "0"
-                date_val = str(row[4]).strip() if len(row) > 4 else ""
+        try:
+            trans_rows = trans_sheet.get_all_values()
+            trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
+            for row in trans_data:
+                if len(row) < 4:
+                    continue
+                t_main_user = str(row[0]).strip().lower()
+                if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
+                    agent_val = str(row[1]).strip() if len(row) > 1 else ""
+                    t_type = str(row[2]).strip() if len(row) > 2 else ""
+                    amt_str = str(row[3]).strip() if len(row) > 3 else "0"
+                    date_val = str(row[4]).strip() if len(row) > 4 else ""
 
-                try:
-                    val = float(amt_str.replace(",", "").strip())
-                except ValueError:
-                    val = 0.0
+                    try:
+                        val = float(amt_str.replace(",", "").strip())
+                    except ValueError:
+                        val = 0.0
 
-                if "سحب" in t_type or "(-)" in t_type:
-                    total_balance -= val
-                else:
-                    total_balance += val
+                    if "سحب" in t_type or "(-)" in t_type:
+                        total_balance -= val
+                    else:
+                        total_balance += val
 
-                user_transactions.append({
-                    "Agent": agent_val,
-                    "Type": t_type,
-                    "Amount": amt_str,
-                    "Date": date_val
-                })
+                    user_transactions.append({
+                        "Agent": agent_val,
+                        "Type": t_type,
+                        "Amount": amt_str,
+                        "Date": date_val
+                    })
+        except Exception:
+            pass
 
     current_user["Balance"] = total_balance
     return render_template("user_view.html", user=current_user, transactions=user_transactions)
