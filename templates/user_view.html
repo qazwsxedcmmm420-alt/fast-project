@@ -5,103 +5,248 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>حسابي - {{ user.Name }}</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#12181b">
+    <meta name="theme-color" content="#0b0f19">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #12181b;
-            color: #e2e8f0;
+            background-color: #0b0f19;
+            color: #f8fafc;
             font-family: Tahoma, sans-serif;
+            padding-bottom: 30px;
         }
-        .content-card {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        /* الشريط العلوي */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            margin-bottom: 10px;
         }
-        .balance-label {
+        .welcome-text {
             color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+        .user-name {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background-color: #161e2e;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 6px 14px;
             font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        .balance-amount {
-            direction: ltr;
-            display: inline-block;
+        .logout-btn:hover {
+            background-color: #1e293b;
+            color: #ef4444;
         }
-        .text-positive { color: #22c55e !important; }
-        .text-negative { color: #ef4444 !important; }
 
-        .table-dark-custom {
-            background-color: #161e29 !important;
-            color: #ffffff !important;
+        /* أزرار التبديل العلوية (الرصيد الأساسي / الهدايا) */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
         }
-        .table-dark-custom th {
-            background-color: #1a2332 !important;
-            color: #38bdf8 !important;
-            border-color: #334155 !important;
-            text-align: center;
+        .tab-btn {
+            flex: 1;
+            background-color: #161e2e;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            border-radius: 12px;
             padding: 12px;
-        }
-        .table-dark-custom td {
-            background-color: #161e29 !important;
-            border-color: #2a3447 !important;
-            color: #ffffff !important;
             text-align: center;
-            padding: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
         }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            border-color: #34d399;
+            color: #ffffff;
+        }
+
+        /* صندوق الرصيد المتاح الكبير */
+        .balance-main-card {
+            background-color: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 18px;
+            padding: 25px 15px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .balance-title {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .balance-value {
+            direction: ltr;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        /* عنوان قسم العمليات */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .badge-count {
+            background-color: #161e2e;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+
+        /* كارد العملية المفردة المطابق للصور */
+        .transaction-card {
+            background-color: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        /* الشريط الملون على يمين الكارت */
+        .transaction-card::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+        .card-positive::after { background-color: #22c55e; }
+        .card-negative::after { background-color: #ef4444; }
+
+        .trans-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .trans-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .icon-positive {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+        .icon-negative {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .trans-details h6 {
+            margin: 0 0 4px 0;
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .trans-date {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .trans-amount {
+            direction: ltr;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .amount-positive { color: #22c55e; }
+        .amount-negative { color: #ef4444; }
     </style>
 </head>
-<body class="p-3 p-md-4">
-    <div class="container-fluid">
-        <!-- الرأس -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+<body class="px-3 pt-2">
+    <div class="container" style="max-width: 500px;">
+        
+        <!-- الشريط العلوي: اسم المستخدم وزر الخروج -->
+        <div class="header-section">
             <div>
-                <h3 class="text-info fw-bold mb-1">{{ user.Name }}</h3>
-                <span class="balance-label">المبلغ الكلي في الحساب: </span>
-                <span class="fs-4 fw-bold balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                    ${{ "{:,.0f}".format(user.Balance) }}
-                </span>
+                <div class="welcome-text">مرحباً بعودتك،</div>
+                <div class="user-name">{{ user.Name }}</div>
             </div>
-            <a href="{{ url_for('user_logout') }}" class="btn btn-outline-danger btn-sm px-3">تسجيل الخروج</a>
+            <a href="{{ url_for('user_logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+            </a>
         </div>
 
-        <!-- جدول السجل -->
-        <div class="content-card p-3 p-md-4">
-            <h5 class="mb-3 text-warning">سجل العمليات الخاصة بحسابك</h5>
-            <div class="table-responsive">
-                <table class="table table-dark-custom table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>النوع</th>
-                            <th>المبلغ</th>
-                            <th>اسم المسجل</th>
-                            <th>التاريخ والوقت</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if transactions %}
-                            {% for t in transactions %}
-                            <tr>
-                                <td>
-                                    <span class="badge {% if 'إيداع' in t.Type %}bg-success{% else %}bg-danger{% endif %} px-2 py-1">
-                                        {{ t.Type }}
-                                    </span>
-                                </td>
-                                <td class="fw-bold balance-amount">
-                                    ${{ "{:,.0f}".format(t.Amount|float) if t.Amount else "0" }}
-                                </td>
-                                <td>{{ t.Agent }}</td>
-                                <td class="text-muted small">{{ t.Date }}</td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="4" class="text-muted py-4">لا توجد عمليات مسجلة في حسابك حتى الآن</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+        <!-- أزرار الرصيد الأساسي / رصيد الهدايا -->
+        <div class="tabs-container">
+            <div class="tab-btn active">
+                <i class="fa-solid fa-wallet ms-1"></i> الرصيد الأساسي
+            </div>
+            <div class="tab-btn">
+                <i class="fa-solid fa-gift ms-1"></i> رصيد الهدايا
             </div>
         </div>
+
+        <!-- صندوق الرصيد المتاح -->
+        <div class="balance-main-card">
+            <div class="balance-title">الرصيد المتاح</div>
+            <div class="balance-value {% if user.Balance >= 0 %}text-white{% else %}text-danger{% endif %}">
+                ${{ "{:,.0f}".format(user.Balance) }}
+            </div>
+        </div>
+
+        <!-- رأس قسم سجل العمليات -->
+        <div class="section-header">
+            <div class="section-title">سجل العمليات</div>
+            <div class="badge-count">الكل</div>
+        </div>
+
+        <!-- قائمة العمليات (بطاقات منفصلة) -->
+        <div class="transactions-list">
+            {% if transactions %}
+                {% data_loop %}
+                {% for t in transactions %}
+                {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
+                <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}">
+                    <div class="trans-info">
+                        <div class="trans-icon-box {% if is_dep %}icon-positive{% else %}icon-negative{% endif %}">
+                            <i class="fa-solid {% if is_dep %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
+                        </div>
+                        <div class="trans-details">
+                            <h6>{{ t.Agent if t.Agent else t.Type }}</h6>
+                            <p class="trans-date">{{ t.Date }}</p>
+                        </div>
+                    </div>
+                    <div class="trans-amount {% if is_dep %}amount-positive{% else %}amount-negative{% endif %}">
+                        {{ "{:,.0f}".format(t.Amount|float) if t.Amount else "0" }}{% if is_dep %}+{% else %}-{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-5">لا توجد عمليات مسجلة حتى الآن</div>
+            {% endif %}
+        </div>
+
     </div>
 
     <script>
