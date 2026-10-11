@@ -111,7 +111,10 @@ def admin():
             "Balance": balance
         })
 
-    return render_template("admin_dashboard.html", users=users_list)
+        # حساب مجموع الديون الكلية (للأرصدة التي أقل من 0)
+    total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
+
+    return render_template("admin_dashboard.html", users=users_list, total_debts=total_debts)
 
 # 3. واجهة تفاصيل المستخدم الخاصة بالأدمن
 @app.route("/user/<user_id>")
