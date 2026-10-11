@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body {
-            background-color: #12181b;
+            background-color: #0b0f19;
             color: #e2e8f0;
             font-family: Tahoma, sans-serif;
         }
@@ -18,13 +18,13 @@
         }
 
         .content-card {
-            background-color: #1e293b;
+            background-color: #161b26;
             border: 1px solid #334155;
             border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
-        /* جعل الحاوية تتسع لـ 5 عناصر في السطر للشاشات الكبيرة */
+        /* جعل الواجهة تسع إلى 5 عناصر في السطر للشاشات الكبيرة */
         .col-custom-5 {
             flex: 0 0 auto;
             width: 20%;
@@ -43,7 +43,7 @@
 
         /* توضيح العنوان والمبلغ */
         .balance-label {
-            color: #94a3b8 !important; /* لون رمادي فاتح وواضح */
+            color: #94a3b8 !important;
             font-size: 0.85rem !important;
             margin-top: 4px;
             margin-bottom: 4px;
@@ -74,21 +74,24 @@
 </head>
 <body class="p-4">
     <div class="container-fluid">
+        
         <!-- رأس الصفحة -->
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
             <h2 class="header-title">قائمة المستخدمين</h2>
-            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger btn-sm px-4">تسجيل الخروج</a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger btn-sm px-4 py-2" style="border-radius: 10px;">
+                <i class="fa-solid fa-right-from-bracket ms-1"></i> تسجيل الخروج
+            </a>
         </div>
-        حققت    <!-- شريط مجموع الديون الكلية (السالبة) -->
-    <!-- شريط إجمالي الديون الكلية -->
-    <div class="container-fluid my-3">
-        <div class="p-3 shadow fw-bold text-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 1.1rem;">
-            <i class="fa-solid fa-triangle-exclamation ms-2"></i> إجمالي الديون الكلية: 
-            <span class="text-danger" style="direction: ltr; display: inline-block;">
-                ${{ "{:,.0f}".format(total_debts) }}
-            </span>
+
+        <!-- شريط إجمالي الديون الكلية (السالبة) -->
+        <div class="container-fluid my-3 px-0">
+            <div class="p-3 shadow fw-bold text-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 1.1rem;">
+                <i class="fa-solid fa-triangle-exclamation ms-2"></i> إجمالي الديون الكلية: 
+                <span class="text-danger" style="direction: ltr; display: inline-block;">
+                    ${{ "{:,.0f}".format(total_debts) }}
+                </span>
+            </div>
         </div>
-    </div>
 
         <!-- شبكة عرض المستخدمين (5 في السطر) -->
         <div class="row g-3">
@@ -96,29 +99,35 @@
             <div class="col-custom-5">
                 <a href="{{ url_for('user_dashboard', user_id=user.User_ID) }}" class="text-decoration-none">
                     <div class="content-card user-card text-center p-3 h-100">
+                        
                         <!-- صورة أو أيقونة المستخدم -->
-                        {% if user.Profile_Image %}
-                            <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 45px; height: 45px; object-fit: cover;">
-                        {% else %}
-                            <div class="avatar-icon bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2 mx-auto" style="width: 45px; height: 45px; font-size: 20px;">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                        {% endif %}
+                        <div class="mb-2">
+                            {% if user.Profile_Image %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 55px; height: 55px; object-fit: cover; border: 2px solid rgba(255,255,255,0.2);">
+                            {% else %}
+                                <div class="avatar-icon bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-2" style="width: 55px; height: 55px;">
+                                    <i class="bi bi-person-fill fs-4"></i>
+                                </div>
+                            {% endif %}
+                        </div>
 
+                        <!-- اسم المستخدم -->
                         <h5 class="text-light fw-bold mb-1" style="font-size: 1rem;">{{ user.Name }}</h5>
                         
                         <!-- النص التوضيحي للمبلغ -->
                         <span class="balance-label">المبلغ الكلي في الحساب</span>
                         
-                        <!-- المبلغ المالي بشكل واضح مع فواصل الألوف برقم صحيح وصريح -->
+                        <!-- المبلغ المالي بشكل واضح مع فواصل الآلاف برقم صحيح ومريح -->
                         <div class="balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
                             ${{ "{:,.0f}".format(user.Balance) }}
                         </div>
+
                     </div>
                 </a>
             </div>
             {% endfor %}
         </div>
+
     </div>
 </body>
 </html>
