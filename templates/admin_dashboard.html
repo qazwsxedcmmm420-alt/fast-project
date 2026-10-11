@@ -79,6 +79,13 @@
             <h2 class="header-title">قائمة المستخدمين</h2>
             <a href="{{ url_for('admin_logout') }}" class="btn btn-danger btn-sm px-4">تسجيل الخروج</a>
         </div>
+        حققت    <!-- شريط مجموع الديون الكلية (السالبة) -->
+    <div class="container-fluid my-3">
+        <div class="p-3 shadow fw-bold text-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 1.1rem;">
+            <i class="fa-solid fa-triangle-exclamation ms-2"></i> إجمالي الديون الكلية (السالبة): 
+            <span class="text-danger">$-1,228,600</span>
+        </div>
+    </div>
 
         <!-- شبكة عرض المستخدمين (5 في السطر) -->
         <div class="row g-3">
