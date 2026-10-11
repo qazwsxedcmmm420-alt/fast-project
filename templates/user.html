@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>إدارة الحساب - {{ user.Name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body {
             background-color: #12181b;
@@ -21,10 +22,11 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
-        /* تثبيت قسم تسجيل العملية الجديدة أثناء التمرير */
-        .sticky-form {
+        /* تثبيت كامل العمود الأيمن (رأس الصفحة، نموذج الإدخال، وبطاقة الصورة) أثناء التمرير */
+        .sticky-left-column {
             position: sticky;
             top: 20px;
+            height: fit-content;
         }
 
         /* تنسيق جدول العمليات الداكن والواضح */
@@ -84,50 +86,79 @@
 </head>
 <body class="p-4">
     <div class="container-fluid">
-        <!-- رأس الصفحة -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
-            <div>
-                <h2 class="header-title d-inline-block me-3">{{ user.Name }}</h2>
-                <span class="balance-label ms-2">المبلغ الكلي في الحساب: </span>
-                <span class="fs-4 fw-bold balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                    ${{ "{:,.0f}".format(user.Balance) }}
-                </span>
-            </div>
-            <div>
-                <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm px-4">العودة للوحة التحكم</a>
-            </div>
-        </div>
-
+        
         <div class="row g-4">
-            <!-- القسم الأول: تسجيل عملية جديدة (ثابت أثناء التمرير) -->
+            <!-- القسم الأيمن (الثابت بالكامل: معلومات المستخدم + تسجيل عملية + رفع الصورة) -->
             <div class="col-lg-4">
-                <div class="content-card p-4 sticky-form">
-                    <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
-                    <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label text-light">اسم مسجل العملية</label>
-                            <input type="text" name="agent_name" class="form-control" placeholder="أدخل اسمك أو اسم الموظف..." required>
+                <div class="sticky-left-column d-flex flex-column gap-3">
+                    
+                    <!-- بطاقة معلومات المستخدم والرصيد -->
+                    <div class="content-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div>
+                                {% if user.Profile_Image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle" style="width: 55px; height: 55px; object-fit: cover; border: 2px solid #38bdf8;">
+                                {% else %}
+                                    <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                        <i class="bi bi-person-fill fs-4"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="header-title mb-1">{{ user.Name }}</h4>
+                                <span class="balance-label">المبلغ الكلي في الحساب</span>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light">نوع العملية</label>
-                            <select name="type" class="form-select" required>
-                                <option value="إيداع (+)">إيداع (+)</option>
-                                <option value="سحب (-)">سحب (-)</option>
-                            </select>
+                        <div class="text-center p-2 rounded" style="background-color: #0f172a; border: 1px solid #334155;">
+                            <span class="fs-4 fw-bold balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
+                                ${{ "{:,.0f}".format(user.Balance) }}
+                            </span>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light">المبلغ</label>
-                            <!-- حقل مرئي يظهر الفواصل أثناء الكتابة -->
-                            <input type="text" id="formatted_amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
-                            <!-- حقل مخفي يرسل الرقم الخام للخلفية بدون فواصل -->
-                            <input type="hidden" name="amount" id="raw_amount">
+                        <div class="mt-3">
+                            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm w-100 py-2" style="border-radius: 10px;">العودة للوحة التحكم</a>
                         </div>
-                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold">حفظ العملية</button>
-                    </form>
+                    </div>
+
+                    <!-- نموذج تسجيل عملية جديدة -->
+                    <div class="content-card p-4">
+                        <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
+                        <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label text-light">اسم مسجل العملية</label>
+                                <input type="text" name="agent_name" class="form-control" placeholder="أدخل اسمك أو اسم الموظف..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-light">نوع العملية</label>
+                                <select name="type" class="form-select" required>
+                                    <option value="إيداع (+)">إيداع (+)</option>
+                                    <option value="سحب (-)">سحب (-)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-light">المبلغ</label>
+                                <!-- حقل مرئي يظهر الفواصل أثناء الكتابة -->
+                                <input type="text" id="formatted_amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
+                                <!-- حقل مخفي يرسل الرقم الخام للخلفية بدون فواصل -->
+                                <input type="hidden" name="amount" id="raw_amount">
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 py-2 fw-bold">حفظ العملية</button>
+                        </form>
+                    </div>
+
+                    <!-- بطاقة تغيير الصورة الشخصية -->
+                    <div class="content-card p-3 text-center">
+                        <form action="{{ url_for('upload_profile_image', user_id=user.User_ID) }}" method="POST" enctype="multipart/form-data">
+                            <input type="file" name="profile_image" id="profileImageInput" class="d-none" accept="image/*" onchange="this.form.submit()">
+                            <label for="profileImageInput" class="btn btn-outline-info w-100 py-2" style="cursor: pointer; border-radius: 10px;">
+                                <i class="bi bi-camera-fill ms-1"></i> رفع أو تغيير الصورة الشخصية
+                            </label>
+                        </form>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- القسم الثاني: سجل العمليات السابقة -->
+            <!-- القسم الأيسر: سجل العمليات السابقة (هو الوحيد المتحرك والقابل للتمرير) -->
             <div class="col-lg-8">
                 <div class="content-card p-4">
                     <h4 class="mb-4 text-info">سجل العمليات السابقة</h4>
@@ -168,32 +199,37 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- كود الـ JavaScript (الفواصل التلقائية + منع تكرار الإرسال) -->
     <script>
         const formattedInput = document.getElementById('formatted_amount');
         const rawInput = document.getElementById('raw_amount');
-        const form = document.querySelector('form');
-        const submitBtn = form.querySelector('button[type="submit"]');
+        const transForm = document.querySelector('form[action*="add_transaction"]');
+        const submitBtn = transForm ? transForm.querySelector('button[type="submit"]') : null;
 
         // تنسيق المبلغ بفواصل الآلاف أثناء الكتابة
-        formattedInput.addEventListener('input', function (e) {
-            let value = this.value.replace(/[^\d]/g, '');
-            if (value) {
-                rawInput.value = value;
-                this.value = Number(value).toLocaleString('en-US');
-            } else {
-                rawInput.value = '';
-                this.value = '';
-            }
-        });
+        if (formattedInput) {
+            formattedInput.addEventListener('input', function (e) {
+                let value = this.value.replace(/[^\d]/g, '');
+                if (value) {
+                    rawInput.value = value;
+                    this.value = Number(value).toLocaleString('en-US');
+                } else {
+                    rawInput.value = '';
+                    this.value = '';
+                }
+            });
+        }
 
         // منع تكرار الضغط على زر الحفظ
-        form.addEventListener('submit', function() {
-            submitBtn.disabled = true;
-            submitBtn.innerText = 'جاري الحفظ...';
-        });
+        if (transForm && submitBtn) {
+            transForm.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'جاري الحفظ...';
+            });
+        }
     </script>
 </body>
 </html>
