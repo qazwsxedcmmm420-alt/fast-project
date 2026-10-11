@@ -232,7 +232,37 @@
 
     </div>
 
+    <!-- زر تثبيت التطبيق -->
+    <div id="installContainer" class="text-center my-3 px-3" style="display: none;">
+        <button id="installBtn" class="btn w-100 py-2 fw-bold shadow" style="border-radius: 12px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white; border: none;">
+            <i class="fa-solid fa-download ms-2"></i> تثبيت التطبيق على جهازك
+        </button>
+    </div>
+
     <script>
+        let deferredPrompt;
+        const installContainer = document.getElementById('installContainer');
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installContainer.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installContainer.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installContainer.style.display = 'none';
+        });
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js');
         }
