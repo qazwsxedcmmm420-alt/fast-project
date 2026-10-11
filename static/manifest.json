@@ -1,0 +1,9 @@
+{
+  "name": "حسابي المالي",
+  "short_name": "حسابي",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "icons": []
+}
