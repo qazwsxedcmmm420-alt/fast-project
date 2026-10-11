@@ -282,26 +282,28 @@ def my_account():
     if "user_id" not in session:
         return redirect(url_for("user_login"))
         
-    user_id = session["user_id"]
+    user_id = str(session["user_id"]).strip()
     
     try:
         users_sheet = spreadsheet.worksheet("users")
         users_records = users_sheet.get_all_records()
-    except Exception:
-        return render_template("login.html", error="خطأ في الاتصال بقاعدة البيانات")
+    except Exception as e:
+        return f"خطأ في الاتصال بورقة المستخدمين: {str(e)}"
     
     current_user = None
     for u in users_records:
-        if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
+        # فحص كافة الاحتمالات الممكنة لأسماء أعمدة الـ ID في الجدول
+        u_id = str(u.get("User_ID") or u.get("id") or u.get("ID") or "").strip()
+        if u_id == user_id:
             current_user = {
-                "User_ID": u.get("User_ID") or u.get("id"),
+                "User_ID": u_id,
                 "Name": str(u.get("Name") or u.get("اسم") or "").strip(),
                 "Profile_Image": str(u.get("Profile_Image") or u.get("image") or "")
             }
             break
 
     if not current_user:
-        session.pop("user_id", None)
+        session.clear()
         return redirect(url_for("user_login"))
 
     try:
@@ -316,7 +318,7 @@ def my_account():
     total_balance = 0.0
     target_name = current_user["Name"].lower()
 
-    if trans_sheet:
+    if trans_sheet and target_name:
         try:
             trans_rows = trans_sheet.get_all_values()
             trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
@@ -324,7 +326,7 @@ def my_account():
                 if len(row) < 4:
                     continue
                 t_main_user = str(row[0]).strip().lower()
-                if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
+                if target_name in t_main_user or t_main_user in target_name:
                     agent_val = str(row[1]).strip() if len(row) > 1 else ""
                     t_type = str(row[2]).strip() if len(row) > 2 else ""
                     amt_str = str(row[3]).strip() if len(row) > 3 else "0"
@@ -346,7 +348,7 @@ def my_account():
                         "Amount": amt_str,
                         "Date": date_val
                     })
-        except Exception:
+        except Exception as e:
             pass
 
     current_user["Balance"] = total_balance
