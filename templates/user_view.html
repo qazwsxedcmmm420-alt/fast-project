@@ -267,5 +267,35 @@
             navigator.serviceWorker.register('/sw.js');
         }
     </script>
+    <!-- زر تثبيت التطبيق -->
+    <div class="text-center my-4 px-3">
+        <button id="installBtn" class="btn w-100 py-3 fw-bold shadow" style="border-radius: 14px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white; border: none; font-size: 1rem;">
+            <i class="fa-solid fa-download ms-2"></i> تثبيت التطبيق كبرنامج على الهاتف
+        </button>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            } else {
+                alert("لتثبيت التطبيق على هاتفك:\nاضغط على نقاط المتصفح الثلاث (⋮) في الأعلى ثم اختر 'التثبيت وإنشاء اختصار' أو 'إضافة إلى الشاشة الرئيسية'.");
+            }
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
 </body>
 </html>
