@@ -21,6 +21,12 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
+        /* تثبيت قسم تسجيل العملية الجديدة أثناء التمرير */
+        .sticky-form {
+            position: sticky;
+            top: 20px;
+        }
+
         /* تنسيق جدول العمليات الداكن والواضح */
         .table-dark-custom {
             background-color: #161e29 !important;
@@ -93,9 +99,9 @@
         </div>
 
         <div class="row g-4">
-            <!-- القسم الأول: تسجيل عملية جديدة -->
+            <!-- القسم الأول: تسجيل عملية جديدة (ثابت أثناء التمرير) -->
             <div class="col-lg-4">
-                <div class="content-card p-4">
+                <div class="content-card p-4 sticky-form">
                     <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
                     <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
                         <div class="mb-3">
@@ -111,7 +117,10 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-light">المبلغ</label>
-                            <input type="number" step="any" name="amount" class="form-control" placeholder="أدخل المبلغ..." required>
+                            <!-- حقل مرئي يظهر الفواصل أثناء الكتابة -->
+                            <input type="text" id="formatted_amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
+                            <!-- حقل مخفي يرسل الرقم الخام للخلفية بدون فواصل -->
+                            <input type="hidden" name="amount" id="raw_amount">
                         </div>
                         <button type="submit" class="btn btn-success w-100 py-2 fw-bold">حفظ العملية</button>
                     </form>
@@ -160,5 +169,31 @@
             </div>
         </div>
     </div>
+
+    <!-- كود الـ JavaScript (الفواصل التلقائية + منع تكرار الإرسال) -->
+    <script>
+        const formattedInput = document.getElementById('formatted_amount');
+        const rawInput = document.getElementById('raw_amount');
+        const form = document.querySelector('form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // تنسيق المبلغ بفواصل الآلاف أثناء الكتابة
+        formattedInput.addEventListener('input', function (e) {
+            let value = this.value.replace(/[^\d]/g, '');
+            if (value) {
+                rawInput.value = value;
+                this.value = Number(value).toLocaleString('en-US');
+            } else {
+                rawInput.value = '';
+                this.value = '';
+            }
+        });
+
+        // منع تكرار الضغط على زر الحفظ
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'جاري الحفظ...';
+        });
+    </script>
 </body>
 </html>
