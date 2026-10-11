@@ -377,6 +377,21 @@ def serve_manifest():
 @app.route('/sw.js')
 def serve_sw():
     return send_from_directory('static', 'sw.js')
+    import os
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route('/upload_avatar/<user_id>', methods=['POST'])
+def upload_avatar(user_id):
+    if 'avatar' in request.files:
+        file = request.files['avatar']
+        if file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            # هنا يمكنك حفظ اسم الملف في قاعدة البيانات أو غوغل شيت الخاصة بالمستخدم
+    return redirect(url_for('user_view', user_id=user_id))
 
 if __name__ == "__main__":
     app.run(debug=True)
