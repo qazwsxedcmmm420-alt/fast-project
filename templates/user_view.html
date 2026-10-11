@@ -3,99 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الحساب</title>
+    <title>حسابي - {{ user.Name }}</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0b0f19">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             background-color: #0b0f19;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
+            color: #f8fafc;
+            font-family: Tahoma, sans-serif;
+            padding-bottom: 30px;
         }
-        .card-custom {
-            background-color: #161b26;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            margin-bottom: 10px;
         }
+        .welcome-text {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+        .user-name {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background-color: #161e2e;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .logout-btn:hover {
+            background-color: #1e293b;
+            color: #ef4444;
+        }
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            flex: 1;
+            background-color: #161e2e;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            border-color: #34d399;
+            color: #ffffff;
+        }
+        .balance-main-card {
+            background-color: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 18px;
+            padding: 25px 15px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .balance-title {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .balance-value {
+            direction: ltr;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .badge-count {
+            background-color: #161e2e;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+        .transaction-card {
+            background-color: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .transaction-card::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+        .card-positive::after { background-color: #22c55e; }
+        .card-negative::after { background-color: #ef4444; }
+        .trans-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .trans-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .icon-positive {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+        .icon-negative {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .trans-details h6 {
+            margin: 0 0 4px 0;
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .trans-date {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .trans-amount {
+            direction: ltr;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .amount-positive { color: #22c55e; }
+        .amount-negative { color: #ef4444; }
     </style>
 </head>
-<body class="py-4 px-3">
-    <div class="container" style="max-width: 600px;">
+<body class="px-3 pt-2">
+    <div class="container" style="max-width: 500px;">
         
-        <!-- رأس الصفحة / ترحيب -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="header-section">
             <div>
-                <span class="text-muted small">مرحباً بعودتك،</span>
-                <h3 class="fw-bold text-light mb-0">{{ user_name if user_name else "المستخدم" }}</h3>
+                <div class="welcome-text">مرحباً بعودتك،</div>
+                <div class="user-name">{{ user.Name }}</div>
             </div>
-            <a href="/admin" class="btn btn-outline-light btn-sm px-3" style="border-radius: 10px;">
-                <i class="fa-solid fa-arrow-right ms-1"></i> خروج
+            <a href="{{ url_for('user_logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
             </a>
         </div>
 
-        <!-- بطاقة الرصيد المتاح -->
-        <div class="card card-custom p-4 text-center mb-4 shadow">
-            <span class="text-muted mb-1">الرصيد المتاح</span>
-            <h1 class="fw-bold text-light display-5 mb-0" style="direction: ltr;">{{ balance if balance is defined else "0" }}</h1>
+        <div class="tabs-container">
+            <div class="tab-btn active">
+                <i class="fa-solid fa-wallet ms-1"></i> الرصيد الأساسي
+            </div>
+            <div class="tab-btn">
+                <i class="fa-solid fa-gift ms-1"></i> رصيد الهدايا
+            </div>
         </div>
 
-        <!-- نموذج تسجيل عملية جديدة -->
-        <div class="card card-custom p-4 mb-4 shadow">
-            <h5 class="mb-3 text-warning"><i class="fa-solid fa-plus-circle ms-2"></i>تسجيل عملية جديدة</h5>
-            <form action="/add_transaction/{{ user_id }}" method="POST">
-                <div class="mb-3">
-                    <label class="form-label text-muted small">اسم مسجل العملية</label>
-                    <input type="text" name="recorded_by" class="form-control bg-dark text-light border-secondary" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted small">نوع العملية</label>
-                    <select name="type" class="form-select bg-dark text-light border-secondary">
-                        <option value="deposit">إيداع (+)</option>
-                        <option value="withdraw">سحب (-)</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted small">المبلغ</label>
-                    <input type="text" name="amount" class="form-control bg-dark text-light border-secondary" placeholder="0.00" required>
-                </div>
-                <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm" style="border-radius: 12px;">حفظ العملية</button>
-            </form>
+        <div class="balance-main-card">
+            <div class="balance-title">الرصيد المتاح</div>
+            <div class="balance-value {% if user.Balance >= 0 %}text-white{% else %}text-danger{% endif %}">
+                ${{ "{:,.0f}".format(user.Balance) }}
+            </div>
         </div>
 
-        <!-- عنوان سجل العمليات -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="text-light mb-0">سجل العمليات</h5>
-            <span class="badge bg-dark text-muted border border-secondary px-3 py-2" style="border-radius: 10px;">آخر 100</span>
+        <div class="section-header">
+            <div class="section-title">سجل العمليات</div>
+            <div class="badge-count">الكل</div>
         </div>
 
-        <!-- قائمة العمليات السابقة (على شكل بطاقات مشابهة للصور) -->
-        <div class="d-flex flex-column gap-3">
+        <div class="transactions-list">
             {% if transactions %}
-                {% for tx in transactions %}
-                <div class="card card-custom p-3 d-flex flex-row align-items-center justify-content-between shadow-sm">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle border border-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: #111;">
-                            <i class="fa-regular fa-circle text-muted"></i>
+                {% for t in transactions %}
+                {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
+                <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}">
+                    <div class="trans-info">
+                        <div class="trans-icon-box {% if is_dep %}icon-positive{% else %}icon-negative{% endif %}">
+                            <i class="fa-solid {% if is_dep %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
                         </div>
-                        <div>
-                            <h6 class="mb-1 text-light fw-bold">{{ tx.recorded_by }}</h6>
-                            <span class="text-muted" style="font-size: 0.8rem;">{{ tx.date }}</span>
+                        <div class="trans-details">
+                            <h6>{{ t.Agent if t.Agent else t.Type }}</h6>
+                            <p class="trans-date">{{ t.Date }}</p>
                         </div>
                     </div>
-                    <div class="text-end">
-                        <span class="fw-bold fs-5 {% if tx.type == 'deposit' %}text-success{% else %}text-danger{% endif %}" style="direction: ltr; display: inline-block;">
-                            {{ tx.amount }}{% if tx.type == 'deposit' %}+{% else %}-{% endif %}
-                        </span>
+                    <div class="trans-amount {% if is_dep %}amount-positive{% else %}amount-negative{% endif %}">
+                        {{ "{:,.0f}".format(t.Amount|float) if t.Amount else "0" }}{% if is_dep %}+{% else %}-{% endif %}
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="card card-custom p-4 text-center text-muted">
-                    لا توجد عمليات مسجلة حتى الآن.
-                </div>
+                <div class="text-center text-muted py-5">لا توجد عمليات مسجلة حتى الآن</div>
             {% endif %}
         </div>
 
     </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
 </body>
 </html>
