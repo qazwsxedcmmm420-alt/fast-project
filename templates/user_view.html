@@ -12,145 +12,73 @@
             color: #fff;
             font-family: 'Cairo', sans-serif;
         }
-        /* تثبيت نموذج الإدخال في الجانب الأيمن */
-        .fixed-form-container {
-            position: sticky;
-            top: 20px;
-        }
-        /* جعل سجل العمليات السابقة متحركاً وقابلاً للتمرير */
-        .scrollable-history {
-            max-height: 520px;
-            overflow-y: auto;
-        }
     </style>
 </head>
-<body class="px-3 pt-3">
-
-    <div class="container-fluid">
-        <div class="row">
-            
-            <!-- القسم الأول: نموذج الإدخال ورفع الصورة (ثابت) -->
-            <div class="col-md-5 fixed-form-container mb-4">
-                <div class="card p-4 shadow bg-dark text-light" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
-                    
-                    <!-- رفع وحفظ الصورة الشخصية للمستخدم داخل دائرة -->
-                    <form action="/upload_avatar/{{ user_id }}" method="POST" enctype="multipart/form-data" class="text-center mb-4">
-                        <div class="position-relative d-inline-block">
-                            <div class="rounded-circle overflow-hidden border border-warning shadow" style="width: 90px; height: 90px; margin: 0 auto; background: #222;">
-                                {% if user and user.avatar %}
-                                    <img src="{{ url_for('static', filename='uploads/' + user.avatar) }}" alt="User Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                                {% else %}
-                                    <img src="https://cdn-icons-png.flaticon.com/512/10149/10149458.png" alt="Default Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="mt-2">
-                            <input type="file" name="avatar" accept="image/*" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" required>
-                            <button type="submit" class="btn btn-sm btn-outline-warning w-100" style="border-radius: 8px;">
-                                <i class="fa-solid fa-camera ms-1"></i> حفظ الصورة الشخصية
-                            </button>
-                        </div>
-                    </form>
-
-                    <h4 class="mb-3 text-warning text-center">تسجيل عملية جديدة</h4>
-                    
-                    <!-- نموذج تسجل العملية المالية -->
-                    <form id="transactionForm" action="/add_transaction/{{ user_id }}" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label">اسم مسجل العملية</label>
-                            <input type="text" name="recorded_by" class="form-control bg-dark text-light border-secondary" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">نوع العملية</label>
-                            <select name="type" class="form-select bg-dark text-light border-secondary">
-                                <option value="deposit">إيداع (+)</option>
-                                <option value="withdraw">سحب (-)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">المبلغ</label>
-                            <!-- حقل المبلغ ينظم الأرقام والفواصل والبوينتات تلقائياً أثناء الكتابة -->
-                            <input type="text" id="amountInput" name="amount" class="form-control bg-dark text-light border-secondary" placeholder="0.00" required oninput="formatAmount(this)">
-                        </div>
-                        <!-- زر الحفظ يُعطل فور الضغط عليه لمنع تكرار التسجيل -->
-                        <button type="submit" id="saveBtn" class="btn btn-success w-100 py-2 fw-bold" style="border-radius: 12px;">
-                            حفظ العملية
-                        </button>
-                    </form>
+<body class="p-4">
+    <div class="container" style="max-width: 800px;">
+        <h2 class="text-center mb-4 text-warning">إدارة الحساب</h2>
+        
+        <!-- نموذج تسجيل العملية -->
+        <div class="card p-4 shadow bg-dark text-light mb-4" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+            <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
+            <form action="/add_transaction/{{ user_id }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">اسم مسجل العملية</label>
+                    <input type="text" name="recorded_by" class="form-control bg-dark text-light border-secondary" required>
                 </div>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">نوع العملية</label>
+                    <select name="type" class="form-select bg-dark text-light border-secondary">
+                        <option value="deposit">إيداع (+)</option>
+                        <option value="withdraw">سحب (-)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">المبلغ</label>
+                    <input type="text" name="amount" class="form-control bg-dark text-light border-secondary" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100 py-2 fw-bold" style="border-radius: 12px;">حفظ العملية</button>
+            </form>
+        </div>
 
-            <!-- القسم الثاني: سجل العمليات السابقة (متحرك ومستقل) -->
-            <div class="col-md-7 scrollable-history">
-                <h5 class="text-light mb-3"><i class="fa-solid fa-history ms-2"></i>سجل العمليات السابقة</h5>
-                <div class="table-responsive">
-                    <table class="table table-dark table-striped align-middle text-center" style="border-radius: 12px; overflow: hidden;">
-                        <thead>
+        <!-- سجل العمليات السابقة -->
+        <div class="card p-4 shadow bg-dark text-light" style="border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+            <h5 class="text-light mb-3"><i class="fa-solid fa-history ms-2"></i>سجل العمليات السابقة</h5>
+            <div class="table-responsive">
+                <table class="table table-dark table-striped align-middle text-center" style="border-radius: 12px; overflow: hidden;">
+                    <thead>
+                        <tr>
+                            <th>اسم المسجل</th>
+                            <th>النوع</th>
+                            <th>المبلغ</th>
+                            <th>التاريخ والوقت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if transactions %}
+                            {% for tx in transactions %}
                             <tr>
-                                <th>اسم المسجل</th>
-                                <th>النوع</th>
-                                <th>المبلغ</th>
-                                <th>التاريخ والوقت</th>
+                                <td>{{ tx.recorded_by }}</td>
+                                <td>
+                                    {% if tx.type == 'deposit' %}
+                                        <span class="badge bg-success">إيداع (+)</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">سحب (-)</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ tx.amount }}</td>
+                                <td class="text-muted small">{{ tx.date }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% if transactions %}
-                                {% for tx in transactions %}
-                                <tr>
-                                    <td>{{ tx.recorded_by }}</td>
-                                    <td>
-                                        {% if tx.type == 'deposit' %}
-                                            <span class="badge bg-success">إيداع (+)</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">سحب (-)</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="fw-bold">{{ tx.amount }}</td>
-                                    <td class="text-muted small">{{ tx.date }}</td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="4" class="text-muted">لا توجد عمليات سابقة</td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-muted">لا توجد عمليات سابقة</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
-
         </div>
     </div>
-
-    <!-- كود الجافا سكربت للتحكم بالبوينتات والتنسيق ومنع التكرار -->
-    <script>
-        // تنسيق الأرقام تلقائياً وإضافة الفواصل والبوينتات العادية
-        function formatAmount(input) {
-            let value = input.value.replace(/,/g, '');
-            value = value.replace(/[^0-9.]/g, ''); // السماح بالأرقام والنقطة العشرية فقط
-            
-            let parts = value.split('.');
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            
-            if (parts.length > 1) {
-                input.value = parts[0] + '.' + parts[1].slice(0, 2);
-            } else {
-                input.value = parts[0];
-            }
-        }
-
-        // إيقاف الزر عند الضغط مرة واحدة لمنع الحفظ المكرر
-        const form = document.getElementById('transactionForm');
-        const saveBtn = document.getElementById('saveBtn');
-
-        form.addEventListener('submit', function(e) {
-            if (saveBtn.disabled) {
-                e.preventDefault();
-                return;
-            }
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm ms-2"></span> جاري الحفظ...';
-        });
-    </script>
 </body>
 </html>
