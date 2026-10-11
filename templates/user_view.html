@@ -15,7 +15,6 @@
             font-family: Tahoma, sans-serif;
             padding-bottom: 30px;
         }
-        /* الشريط العلوي */
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -49,8 +48,6 @@
             background-color: #1e293b;
             color: #ef4444;
         }
-
-        /* أزرار التبديل العلوية (الرصيد الأساسي / الهدايا) */
         .tabs-container {
             display: flex;
             gap: 10px;
@@ -72,8 +69,6 @@
             border-color: #34d399;
             color: #ffffff;
         }
-
-        /* صندوق الرصيد المتاح الكبير */
         .balance-main-card {
             background-color: #131b2e;
             border: 1px solid #1e293b;
@@ -94,8 +89,6 @@
             font-weight: bold;
             color: #ffffff;
         }
-
-        /* عنوان قسم العمليات */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -115,8 +108,6 @@
             padding: 4px 12px;
             font-size: 0.8rem;
         }
-
-        /* كارد العملية المفردة المطابق للصور */
         .transaction-card {
             background-color: #131b2e;
             border: 1px solid #1e293b;
@@ -129,7 +120,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* الشريط الملون على يمين الكارت */
         .transaction-card::after {
             content: '';
             position: absolute;
@@ -140,7 +130,6 @@
         }
         .card-positive::after { background-color: #22c55e; }
         .card-negative::after { background-color: #ef4444; }
-
         .trans-info {
             display: flex;
             align-items: center;
@@ -186,7 +175,6 @@
 <body class="px-3 pt-2">
     <div class="container" style="max-width: 500px;">
         
-        <!-- الشريط العلوي: اسم المستخدم وزر الخروج -->
         <div class="header-section">
             <div>
                 <div class="welcome-text">مرحباً بعودتك،</div>
@@ -197,7 +185,6 @@
             </a>
         </div>
 
-        <!-- أزرار الرصيد الأساسي / رصيد الهدايا -->
         <div class="tabs-container">
             <div class="tab-btn active">
                 <i class="fa-solid fa-wallet ms-1"></i> الرصيد الأساسي
@@ -207,7 +194,6 @@
             </div>
         </div>
 
-        <!-- صندوق الرصيد المتاح -->
         <div class="balance-main-card">
             <div class="balance-title">الرصيد المتاح</div>
             <div class="balance-value {% if user.Balance >= 0 %}text-white{% else %}text-danger{% endif %}">
@@ -215,16 +201,13 @@
             </div>
         </div>
 
-        <!-- رأس قسم سجل العمليات -->
         <div class="section-header">
             <div class="section-title">سجل العمليات</div>
             <div class="badge-count">الكل</div>
         </div>
 
-        <!-- قائمة العمليات (بطاقات منفصلة) -->
         <div class="transactions-list">
             {% if transactions %}
-                {% data_loop %}
                 {% for t in transactions %}
                 {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
                 <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}">
