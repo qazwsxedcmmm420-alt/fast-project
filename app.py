@@ -370,7 +370,7 @@ def manifest():
 def service_worker():
     return send_from_directory("static", "sw.js")
 
-    @app.route('/manifest.json')
+@app.route('/manifest.json')
 def serve_manifest():
     return send_from_directory('static', 'manifest.json')
 
