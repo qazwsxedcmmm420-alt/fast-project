@@ -30,14 +30,11 @@ def home():
     return redirect(url_for("admin"))
 
 # 1. تسجيل دخول المسؤول (Admin Login)
-# 1. تسجيل دخول المسؤول (Admin Login)
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        # استقبال كلمة المرور (بغض النظر عن اسم الحقل المرسل من النموذج)
         password = request.form.get("password", "") or request.form.get("admin_password", "")
         
-        # يمكنك تغيير "admin123" إلى كلمة المرور التي ترغب بها
         if password == "admin123" or request.form.get("username") == "admin": 
             session["is_admin"] = True
             return redirect(url_for("admin"))
@@ -51,11 +48,8 @@ def admin_logout():
     session.pop("is_admin", None)
     return redirect(url_for("admin_login"))
 
-# 2. لوحة تحكم المسؤول
-@app.route("/admin")
-def admin():
-    if not session.get("is_admin"):
-        return redirect(url_for("admin_login"))
+# دالة مساعدة لجلب وعمل حسابات المستخدمين
+def get_processed_users():
     try:
         users_sheet = spreadsheet.worksheet("users")
         users_records = users_sheet.get_all_records()
@@ -110,11 +104,31 @@ def admin():
             "Profile_Image": profile_img,
             "Balance": balance
         })
+    return users_list
 
-        # حساب مجموع الديون الكلية (للأرصدة التي أقل من 0)
+# 2. لوحة تحكم المسؤول (عرض كل المستخدمين)
+@app.route("/admin")
+def admin():
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+    
+    users_list = get_processed_users()
     total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
 
     return render_template("admin_dashboard.html", users=users_list, total_debts=total_debts)
+
+# 2.1 مسار عرض الديون فقط (عند النقر على أيقونة مجموع الديون في الشريط الجانبي)
+@app.route("/admin/debts")
+def admin_debts():
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+    
+    users_list = get_processed_users()
+    # تصفية المستخدمين الذين لديهم أرصدة بالسالب فقط
+    debt_users = [u for u in users_list if u['Balance'] < 0]
+    total_debts = sum(u['Balance'] for u in debt_users)
+
+    return render_template("admin_dashboard.html", users=debt_users, total_debts=total_debts)
 
 # 3. واجهة تفاصيل المستخدم الخاصة بالأدمن
 @app.route("/user/<user_id>")
@@ -256,7 +270,7 @@ def upload_profile_image(user_id):
         print(f"Error saving image: {str(e)}")
         return redirect(request.referrer or url_for("admin"))
 
-# 6. واجهة تسجيل دخول المستخدم العادي (بالـ ID فقط)
+# 6. واجهة تسجيل دخول المستخدم العادي
 @app.route("/login", methods=["GET", "POST"])
 def user_login():
     if request.method == "POST":
@@ -279,7 +293,7 @@ def user_login():
             
     return render_template("login.html")
 
-# 7. حساب المستخدم العادي (عرض فقط)
+# 7. حساب المستخدم العادي
 @app.route("/my_account")
 def my_account():
     if "user_id" not in session:
@@ -295,7 +309,6 @@ def my_account():
     
     current_user = None
     for u in users_records:
-        # فحص كافة الاحتمالات الممكنة لأسماء أعمدة الـ ID في الجدول
         u_id = str(u.get("User_ID") or u.get("id") or u.get("ID") or "").strip()
         if u_id == user_id:
             current_user = {
@@ -372,29 +385,6 @@ def manifest():
 @app.route("/sw.js")
 def service_worker():
     return send_from_directory("static", "sw.js")
-
-@app.route('/manifest.json')
-def serve_manifest():
-    return send_from_directory('static', 'manifest.json')
-
-@app.route('/sw.js')
-def serve_sw():
-    return send_from_directory('static', 'sw.js')
-    import os
-from werkzeug.utils import secure_filename
-
-UPLOAD_FOLDER = 'static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-@app.route('/upload_avatar/<user_id>', methods=['POST'])
-def upload_avatar(user_id):
-    if 'avatar' in request.files:
-        file = request.files['avatar']
-        if file.filename != '':
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
-            # هنا يمكنك حفظ اسم الملف في قاعدة البيانات أو غوغل شيت الخاصة بالمستخدم
-    return redirect(url_for('user_view', user_id=user_id))
 
 if __name__ == "__main__":
     app.run(debug=True)
