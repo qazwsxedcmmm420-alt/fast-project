@@ -119,6 +119,7 @@
             justify-content: space-between;
             position: relative;
             overflow: hidden;
+            transition: opacity 0.3s ease;
         }
         .transaction-card::after {
             content: '';
@@ -135,6 +136,43 @@
             align-items: center;
             gap: 12px;
         }
+        
+        /* تصميم دائرة الاختيار */
+        .custom-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #64748b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            background-color: transparent;
+        }
+        .custom-checkbox i {
+            font-size: 0.75rem;
+            color: transparent;
+            transition: color 0.2s ease;
+        }
+
+        /* حالة التحديد */
+        .transaction-card.checked .custom-checkbox {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .transaction-card.checked .custom-checkbox i {
+            color: #ffffff;
+        }
+        .transaction-card.checked .trans-name {
+            text-decoration: line-through;
+            color: #64748b !important;
+        }
+        .transaction-card.checked {
+            opacity: 0.7;
+        }
+
         .trans-icon-box {
             width: 42px;
             height: 42px;
@@ -157,6 +195,7 @@
             font-size: 0.95rem;
             color: #ffffff;
             font-weight: bold;
+            transition: color 0.2s ease;
         }
         .trans-date {
             margin: 0;
@@ -210,13 +249,19 @@
             {% if transactions %}
                 {% for t in transactions %}
                 {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
-                <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}">
+                <!-- أضفنا مُعرّف فريد لكل معاملة يعتمد على الاسم والتاريخ والـ loop index -->
+                <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}" id="trans-{{ loop.index }}">
                     <div class="trans-info">
+                        <!-- دائرة الاختيار -->
+                        <div class="custom-checkbox" onclick="toggleCheck('trans-{{ loop.index }}')">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        
                         <div class="trans-icon-box {% if is_dep %}icon-positive{% else %}icon-negative{% endif %}">
                             <i class="fa-solid {% if is_dep %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
                         </div>
                         <div class="trans-details">
-                            <h6>{{ t.Agent if t.Agent else t.Type }}</h6>
+                            <h6 class="trans-name">{{ t.Agent if t.Agent else t.Type }}</h6>
                             <p class="trans-date">{{ t.Date }}</p>
                         </div>
                     </div>
@@ -233,6 +278,27 @@
     </div>
 
     <script>
+        // دالة تبديل حالة التحديد وحفظها في الذاكرة المحلية للجهاز
+        function toggleCheck(cardId) {
+            const card = document.getElementById(cardId);
+            card.classList.toggle('checked');
+            
+            // حفظ الحالة في المتصفح لتبقى حتى بعد إعادة تحميل الصفحة
+            const isChecked = card.classList.contains('checked');
+            localStorage.setItem(cardId, isChecked);
+        }
+
+        // استرجاع الحالات المحفوظة عند فتح الصفحة
+        document.addEventListener("DOMContentLoaded", function() {
+            const cards = document.querySelectorAll('.transaction-card');
+            cards.forEach(card => {
+                const cardId = card.id;
+                if (localStorage.getItem(cardId) === 'true') {
+                    card.classList.add('checked');
+                }
+            });
+        });
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js');
         }
