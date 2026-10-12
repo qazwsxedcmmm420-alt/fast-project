@@ -8,34 +8,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #0b0f19;
-            color: #e2e8f0;
+            background-color: #0b132b; /* خلفية داكنة عميقة ومطابقة للصورة */
+            color: #ffffff;
             font-family: Tahoma, sans-serif;
             margin: 0;
+            overflow-x: hidden;
         }
 
-        /* تصميم القائمة الجانبية (Sidebar) */
+        /* تصميم القائمة الجانبية (Sidebar) على اليمين */
         .sidebar {
             height: 100vh;
-            background-color: #161b26;
-            border-left: 1px solid #334155;
+            background-color: #1c2541; /* لون الشريط الجانبي المطابق للصورة */
+            border-left: 1px solid #3a506b;
             position: fixed;
             top: 0;
             right: 0;
-            width: 260px;
+            width: 250px;
             padding-top: 20px;
             z-index: 1000;
         }
         .sidebar .nav-link {
-            color: #e2e8f0;
+            color: #ffffff;
             padding: 12px 20px;
             margin: 5px 15px;
-            border-radius: 10px;
+            border-radius: 8px;
             transition: all 0.3s;
+            text-align: right;
         }
         .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background-color: #38bdf8;
-            color: #0b0f19;
+            background-color: #3b82f6;
+            color: #ffffff;
             font-weight: bold;
         }
         .logout-container {
@@ -45,22 +47,31 @@
             right: 15px;
         }
 
-        /* محتوى الصفحة الرئيسي لكي لا يتداخل مع الشريط الجانبي */
+        /* محتوى الصفحة الرئيسي لكي يترك مساحة للقائمة الجانبية */
         .main-content {
-            margin-right: 260px;
+            margin-right: 250px;
             padding: 30px;
         }
 
         .header-title {
-            color: #38bdf8;
+            color: #ffffff;
             font-weight: bold;
+            text-align: right;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
         }
 
+        /* بطاقات المحتوى والمستخدمين المطابقة للصورة */
         .content-card {
-            background-color: #161b26;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            background-color: #1c2541; /* لون البطاقات الغامق والأنيق */
+            border: 1px solid #3a506b;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .content-card:hover {
+            transform: translateY(-4px);
         }
 
         /* جعل الواجهة تسع إلى 5 عناصر في السطر للشاشات الكبيرة */
@@ -69,23 +80,17 @@
             width: 20%;
         }
 
-        /* البطاقات والأيقونات */
         .user-card {
-            padding: 14px !important;
-            border-radius: 12px !important;
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .user-card:hover {
-            transform: translateY(-3px);
+            padding: 20px !important;
+            border-radius: 14px !important;
         }
 
         /* توضيح العنوان والمبلغ */
         .balance-label {
             color: #94a3b8 !important;
             font-size: 0.85rem !important;
-            margin-top: 4px;
-            margin-bottom: 4px;
+            margin-top: 6px;
+            margin-bottom: 6px;
             display: block;
         }
 
@@ -93,19 +98,19 @@
             font-size: 1.1rem;
             font-weight: bold;
             display: inline-block;
-            direction: ltr; /* لضبط اتجاه الإشارة الرقمية والعملة */
+            direction: ltr;
         }
 
         .text-positive { color: #22c55e !important; }
         .text-negative { color: #ef4444 !important; }
 
-        /* تجاوب البطاقات للشاشات المتوسطة والصغيرة */
+        /* التجاوب مع الشاشات المختلفة */
         @media (max-width: 1200px) {
             .col-custom-5 { width: 25%; }
         }
         @media (max-width: 992px) {
             .main-content { margin-right: 0; padding: 15px; }
-            .sidebar { display: none; } /* يمكن إخفاء السايدبار في الشاشات الصغيرة جداً أو جعلها متجاوبة */
+            .sidebar { display: none; }
             .col-custom-5 { width: 33.333%; }
         }
         @media (max-width: 768px) {
@@ -118,18 +123,17 @@
 </head>
 <body>
 
-    <!-- الشريط الجانبي (Sidebar) -->
+    <!-- الشريط الجانبي (Sidebar) المطابق للصورة -->
     <div class="sidebar d-flex flex-column">
-        <h4 class="text-center mb-4 text-info fw-bold"><i class="fa-solid fa-user-shield ms-2"></i>لوحة التحكم</h4>
+        <h4 class="text-center mb-4 text-light fw-bold" style="font-size: 1.2rem;">لوحة التحكم</h4>
         <ul class="nav flex-column mb-auto">
             <li class="nav-item">
-                <a href="#" class="nav-link active"><i class="fa-solid fa-users ms-2"></i> قائمة المستخدمين</a>
+                <a href="#" class="nav-link active">قائمة المستخدمين</a>
             </li>
-            <!-- يمكنك إضافة روابط إضافية هنا مستقبلاً -->
         </ul>
         <div class="p-3 logout-container">
-            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger w-100 py-2" style="border-radius: 10px;">
-                <i class="fa-solid fa-right-from-bracket ms-1"></i> تسجيل الخروج
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger w-100 py-2" style="border-radius: 8px; font-weight: bold;">
+                تسجيل الخروج
             </a>
         </div>
     </div>
@@ -137,24 +141,8 @@
     <!-- المحتوى الرئيسي -->
     <div class="main-content">
         
-        <!-- رأس الصفحة -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
-            <h2 class="header-title">قائمة المستخدمين</h2>
-            <!-- زر الخروج للشاشات الصغيرة في حال اختفاء القائمة الجانبية -->
-            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger btn-sm px-3 py-2 d-lg-none" style="border-radius: 10px;">
-                <i class="fa-solid fa-right-from-bracket ms-1"></i> خروج
-            </a>
-        </div>
-
-        <!-- شريط إجمالي الديون الكلية (السالبة) -->
-        <div class="container-fluid my-3 px-0">
-            <div class="p-3 shadow fw-bold text-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 1.1rem;">
-                <i class="fa-solid fa-triangle-exclamation ms-2"></i> إجمالي الديون الكلية: 
-                <span class="text-danger" style="direction: ltr; display: inline-block;">
-                    ${{ "{:,.0f}".format(total_debts) }}
-                </span>
-            </div>
-        </div>
+        <!-- عنوان الصفحة -->
+        <h2 class="header-title">قائمة المستخدمين</h2>
 
         <!-- شبكة عرض المستخدمين (5 في السطر) -->
         <div class="row g-3">
@@ -164,12 +152,12 @@
                     <div class="content-card user-card text-center p-3 h-100">
                         
                         <!-- صورة أو أيقونة المستخدم -->
-                        <div class="mb-2">
+                        <div class="mb-3">
                             {% if user.Profile_Image %}
-                                <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 55px; height: 55px; object-fit: cover; border: 2px solid rgba(255,255,255,0.2);">
+                                <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #3a506b;">
                             {% else %}
-                                <div class="avatar-icon bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-2" style="width: 55px; height: 55px;">
-                                    <i class="bi bi-person-fill fs-4"></i>
+                                <div class="avatar-icon text-secondary rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; background-color: #0b132b;">
+                                    <i class="bi bi-person-fill fs-3 text-light"></i>
                                 </div>
                             {% endif %}
                         </div>
@@ -180,9 +168,9 @@
                         <!-- النص التوضيحي للمبلغ -->
                         <span class="balance-label">المبلغ الكلي في الحساب</span>
                         
-                        <!-- المبلغ المالي بشكل واضح مع فواصل الآلاف برقم صحيح ومريح -->
+                        <!-- المبلغ المالي بشكل واضح مع فواصل الآلاف -->
                         <div class="balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                            ${{ "{:,.0f}".format(user.Balance) }}
+                            ${{ "{:,.1f}".format(user.Balance) }}
                         </div>
 
                     </div>
