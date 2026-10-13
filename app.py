@@ -106,16 +106,26 @@ def get_processed_users():
         })
     return users_list
 
-# 2. لوحة تحكم المسؤول (عرض كل المستخدمين)
+# 2. لوحة تحكم المسؤول (عرض كل المستخدمين والإحصائيات الثنائية والثلاثية)
 @app.route("/admin")
 def admin():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
     
     users_list = get_processed_users()
+    
+    # حساب الإحصائيات الثلاث
     total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
+    total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
+    net_balance = total_positive_balances + total_debts  # الفرق الصافي
 
-    return render_template("admin_dashboard.html", users=users_list, total_debts=total_debts)
+    return render_template(
+        "admin_dashboard.html", 
+        users=users_list, 
+        total_debts=total_debts,
+        total_positive_balances=total_positive_balances,
+        net_balance=net_balance
+    )
 
 # 2.1 مسار عرض الديون فقط (عند النقر على أيقونة مجموع الديون في الشريط الجانبي)
 @app.route("/admin/debts")
@@ -124,11 +134,22 @@ def admin_debts():
         return redirect(url_for("admin_login"))
     
     users_list = get_processed_users()
-    # تصفية المستخدمين الذين لديهم أرصدة بالسالب فقط
-    debt_users = [u for u in users_list if u['Balance'] < 0]
-    total_debts = sum(u['Balance'] for u in debt_users)
+    
+    # حساب الإحصائيات قبل التصفية
+    total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
+    total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
+    net_balance = total_positive_balances + total_debts
 
-    return render_template("admin_dashboard.html", users=debt_users, total_debts=total_debts)
+    # تصفية المستخدمين الذين لديهم أرصدة بالسالب فقط للعرض
+    debt_users = [u for u in users_list if u['Balance'] < 0]
+
+    return render_template(
+        "admin_dashboard.html", 
+        users=debt_users, 
+        total_debts=total_debts,
+        total_positive_balances=total_positive_balances,
+        net_balance=net_balance
+    )
 
 # 3. واجهة تفاصيل المستخدم الخاصة بالأدمن
 @app.route("/user/<user_id>")
