@@ -63,14 +63,11 @@
             text-align: center;
             font-weight: bold;
             font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
         .tab-btn.active {
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             border-color: #34d399;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }
         .balance-main-card {
             background-color: #131b2e;
@@ -145,3 +142,166 @@
             width: 24px;
             height: 24px;
             border: 2px solid #64748b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            background-color: transparent;
+        }
+        .custom-checkbox i {
+            font-size: 0.75rem;
+            color: transparent;
+            transition: color 0.2s ease;
+        }
+
+        /* حالة التحديد */
+        .transaction-card.checked .custom-checkbox {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .transaction-card.checked .custom-checkbox i {
+            color: #ffffff;
+        }
+        .transaction-card.checked .trans-name {
+            text-decoration: line-through;
+            color: #64748b !important;
+        }
+        .transaction-card.checked {
+            opacity: 0.7;
+        }
+
+        .trans-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .icon-positive {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+        .icon-negative {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .trans-details h6 {
+            margin: 0 0 4px 0;
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+        .trans-date {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .trans-amount {
+            direction: ltr;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .amount-positive { color: #22c55e; }
+        .amount-negative { color: #ef4444; }
+    </style>
+</head>
+<body class="px-3 pt-2">
+    <div class="container" style="max-width: 500px;">
+        
+        <div class="header-section">
+            <div>
+                <div class="welcome-text">مرحباً بعودتك،</div>
+                <div class="user-name">{{ user.Name }}</div>
+            </div>
+            <a href="{{ url_for('user_logout') }}" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+            </a>
+        </div>
+
+        <div class="tabs-container">
+            <div class="tab-btn active">
+                <i class="fa-solid fa-wallet ms-1"></i> الرصيد الأساسي
+            </div>
+            <div class="tab-btn">
+                <i class="fa-solid fa-gift ms-1"></i> رصيد الهدايا
+            </div>
+        </div>
+
+        <div class="balance-main-card">
+            <div class="balance-title">الرصيد المتاح</div>
+            <div class="balance-value {% if user.Balance >= 0 %}text-white{% else %}text-danger{% endif %}">
+                ${{ "{:,.0f}".format(user.Balance) }}
+            </div>
+        </div>
+
+        <div class="section-header">
+            <div class="section-title">سجل العمليات</div>
+            <div class="badge-count">الكل</div>
+        </div>
+
+        <div class="transactions-list">
+            {% if transactions %}
+                {% for t in transactions %}
+                {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
+                <!-- أضفنا مُعرّف فريد لكل معاملة يعتمد على الاسم والتاريخ والـ loop index -->
+                <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}" id="trans-{{ loop.index }}">
+                    <div class="trans-info">
+                        <!-- دائرة الاختيار -->
+                        <div class="custom-checkbox" onclick="toggleCheck('trans-{{ loop.index }}')">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        
+                        <div class="trans-icon-box {% if is_dep %}icon-positive{% else %}icon-negative{% endif %}">
+                            <i class="fa-solid {% if is_dep %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
+                        </div>
+                        <div class="trans-details">
+                            <h6 class="trans-name">{{ t.Agent if t.Agent else t.Type }}</h6>
+                            <p class="trans-date">{{ t.Date }}</p>
+                        </div>
+                    </div>
+                    <div class="trans-amount {% if is_dep %}amount-positive{% else %}amount-negative{% endif %}">
+                        {{ "{:,.0f}".format(t.Amount|float) if t.Amount else "0" }}{% if is_dep %}+{% else %}-{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-5">لا توجد عمليات مسجلة حتى الآن</div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <script>
+        // دالة تبديل حالة التحديد وحفظها في الذاكرة المحلية للجهاز
+        function toggleCheck(cardId) {
+            const card = document.getElementById(cardId);
+            card.classList.toggle('checked');
+            
+            // حفظ الحالة في المتصفح لتبقى حتى بعد إعادة تحميل الصفحة
+            const isChecked = card.classList.contains('checked');
+            localStorage.setItem(cardId, isChecked);
+        }
+
+        // استرجاع الحالات المحفوظة عند فتح الصفحة
+        document.addEventListener("DOMContentLoaded", function() {
+            const cards = document.querySelectorAll('.transaction-card');
+            cards.forEach(card => {
+                const cardId = card.id;
+                if (localStorage.getItem(cardId) === 'true') {
+                    card.classList.add('checked');
+                }
+            });
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
+</body>
+</html>
