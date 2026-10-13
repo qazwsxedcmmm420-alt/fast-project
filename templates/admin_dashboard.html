@@ -175,9 +175,9 @@
                 </a>
             </li>
 
-            <!-- البطاقة الثانية: مجموع الأرصدة الموجبة (باللون الأخضر) -->
+            <!-- البطاقة الثانية: مجموع الأرصدة الموجبة (باللون الأخضر) - أصبحت قابلة للضغط -->
             <li class="nav-item px-3 mt-2">
-                <div class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3">
+                <a href="{{ url_for('admin_positive') }}" class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3 {% if request.endpoint == 'admin_positive' %}active-debt{% endif %}">
                     <div class="mb-1">
                         <i class="bi bi-cash-stack fs-4 text-success"></i>
                     </div>
@@ -185,7 +185,7 @@
                     <div class="text-success fw-bold" style="font-size: 0.9rem; direction: ltr;">
                         ${{ "{:,.1f}".format(total_positive_balances) }}
                     </div>
-                </div>
+                </a>
             </li>
 
             <!-- البطاقة الثالثة: الفرق الإجمالي (باللون الأصفر) -->
@@ -216,6 +216,8 @@
         <h2 class="header-title">
             {% if request.endpoint == 'admin_debts' %}
                 المستخدمون الذين لديهم ديون (أرصدة سالبة)
+            {% elif request.endpoint == 'admin_positive' %}
+                المستخدمون الذين لديهم أرصدة موجبة
             {% else %}
                 قائمة المستخدمين
             {% endif %}
