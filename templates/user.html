@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الحساب - {{ user.Name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -22,14 +23,12 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
-        /* تثبيت كامل العمود الأيمن (رأس الصفحة، نموذج الإدخال، وبطاقة الصورة) أثناء التمرير */
         .sticky-left-column {
             position: sticky;
             top: 20px;
             height: fit-content;
         }
 
-        /* تنسيق جدول العمليات الداكن والواضح */
         .table-dark-custom {
             background-color: #161e29 !important;
             color: #ffffff !important;
@@ -56,6 +55,7 @@
         .table-hover > tbody > tr:hover > * {
             background-color: #1f2b3c !important;
             color: #ffffff !important;
+            cursor: pointer;
         }
 
         .form-control, .form-select {
@@ -70,7 +70,6 @@
             box-shadow: none;
         }
 
-        /* تنسيق الرصيد */
         .balance-label {
             color: #94a3b8 !important;
             font-size: 0.9rem;
@@ -88,11 +87,10 @@
     <div class="container-fluid">
         
         <div class="row g-4">
-            <!-- القسم الأيمن (الثابت بالكامل: معلومات المستخدم + تسجيل عملية + رفع الصورة) -->
+            <!-- القسم الأيمن: معلومات المستخدم + تسجيل عملية + رفع الصورة -->
             <div class="col-lg-4">
                 <div class="sticky-left-column d-flex flex-column gap-3">
                     
-                    <!-- بطاقة معلومات المستخدم والرصيد -->
                     <div class="content-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div>
@@ -119,7 +117,6 @@
                         </div>
                     </div>
 
-                    <!-- نموذج تسجيل عملية جديدة -->
                     <div class="content-card p-4">
                         <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
                         <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
@@ -136,16 +133,13 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-light">المبلغ</label>
-                                <!-- حقل مرئي يظهر الفواصل أثناء الكتابة -->
                                 <input type="text" id="formatted_amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
-                                <!-- حقل مخفي يرسل الرقم الخام للخلفية بدون فواصل -->
                                 <input type="hidden" name="amount" id="raw_amount">
                             </div>
                             <button type="submit" class="btn btn-success w-100 py-2 fw-bold">حفظ العملية</button>
                         </form>
                     </div>
 
-                    <!-- بطاقة تغيير الصورة الشخصية -->
                     <div class="content-card p-3 text-center">
                         <form action="{{ url_for('upload_profile_image', user_id=user.User_ID) }}" method="POST" enctype="multipart/form-data">
                             <input type="file" name="profile_image" id="profileImageInput" class="d-none" accept="image/*" onchange="this.form.submit()">
@@ -158,10 +152,10 @@
                 </div>
             </div>
 
-            <!-- القسم الأيسر: سجل العمليات السابقة (هو الوحيد المتحرك والقابل للتمرير) -->
+            <!-- القسم الأيسر: سجل العمليات السابقة -->
             <div class="col-lg-8">
                 <div class="content-card p-4">
-                    <h4 class="mb-4 text-info">سجل العمليات السابقة</h4>
+                    <h4 class="mb-4 text-info">سجل العمليات السابقة (اضغط على أي عملية للتعديل أو الحذف)</h4>
                     <div class="table-responsive">
                         <table class="table table-dark-custom table-striped table-hover align-middle text-center">
                             <thead>
@@ -175,7 +169,8 @@
                             <tbody>
                                 {% if transactions %}
                                     {% for t in transactions %}
-                                    <tr>
+                                    <!-- أضفنا حدث النقر لفتح نافذة الخيارات مع تمرير بيانات الصف -->
+                                    <tr onclick="openActionModal('{{ loop.index0 }}', '{{ t.Agent }}', '{{ t.Type }}', '{{ t.Amount }}', '{{ t.Date }}')">
                                         <td>{{ t.Agent }}</td>
                                         <td>
                                             <span class="badge {% if 'إيداع' in t.Type %}bg-success{% else %}bg-danger{% endif %} fs-6 px-3 py-2">
@@ -202,14 +197,62 @@
 
     </div>
 
-    <!-- كود الـ JavaScript (الفواصل التلقائية + منع تكرار الإرسال) -->
+    <!-- نافذة منبثقة (Modal) للخيارات (تعديل / حذف) -->
+    <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: #1e293b; color: #fff; border: 1px solid #334155;">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-info">خيارات العملية</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="mb-4 text-light">اختر الاجراء المناسب للعملية المحددة:</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <!-- زر التعديل (يمكن ربطه بمسار تعديل لاحقاً) -->
+                        <button type="button" class="btn btn-primary px-4 py-2 fw-bold" onclick="editTransaction()">
+                            <i class="bi bi-pencil-square ms-1"></i> تعديل
+                        </button>
+                        <!-- زر الحذف -->
+                        <button type="button" class="btn btn-danger px-4 py-2 fw-bold" onclick="deleteTransaction()">
+                            <i class="bi bi-trash-fill ms-1"></i> حذف
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let selectedIndex = null;
+
+        function openActionModal(index, agent, type, amount, date) {
+            selectedIndex = index;
+            const myModal = new bootstrap.Modal(document.getElementById('actionModal'));
+            myModal.show();
+        }
+
+        function deleteTransaction() {
+            if (selectedIndex !== null) {
+                if (confirm('هل أنت متأكد من رغبتك في حذف هذه العملية؟')) {
+                    // يمكنك هنا توجيه المستخدم إلى مسار الحذف في الفلاسك، مثال:
+                    window.location.href = "{{ url_for('delete_transaction', user_id=user.User_ID, index='PLACEHOLDER') }}".replace('PLACEHOLDER', selectedIndex);
+                }
+            }
+        }
+
+        function editTransaction() {
+            if (selectedIndex !== null) {
+                // توجيه لصفحة أو نافذة التعديل إذا رغبت لاحقاً
+                window.location.href = "{{ url_for('edit_transaction', user_id=user.User_ID, index='PLACEHOLDER') }}".replace('PLACEHOLDER', selectedIndex);
+            }
+        }
+
         const formattedInput = document.getElementById('formatted_amount');
         const rawInput = document.getElementById('raw_amount');
         const transForm = document.querySelector('form[action*="add_transaction"]');
         const submitBtn = transForm ? transForm.querySelector('button[type="submit"]') : null;
 
-        // تنسيق المبلغ بفواصل الآلاف أثناء الكتابة
         if (formattedInput) {
             formattedInput.addEventListener('input', function (e) {
                 let value = this.value.replace(/[^\d]/g, '');
@@ -223,7 +266,6 @@
             });
         }
 
-        // منع تكرار الضغط على زر الحفظ
         if (transForm && submitBtn) {
             transForm.addEventListener('submit', function() {
                 submitBtn.disabled = true;
