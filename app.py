@@ -311,7 +311,8 @@ def delete_transaction(user_id, index):
 
         return redirect(url_for("user_dashboard", user_id=user_id))
     except Exception as e:
-        return f"حدث خطأ أثناء الحذف: {str(e)}", 500
+        # هذا السطر سيعرض الخطأ التفصيلي على الشاشة مباشرة لنعرف المشكلة
+        return f"<h3>حدث خطأ برمجي أثناء الحذف:</h3><p style='color:red;'>{str(e)}</p>", 500
 
 # 4.2 تعديل عملية محددة (مسار تجريبي للربط)
 @app.route("/user/<user_id>/edit_transaction/<int:index>")
