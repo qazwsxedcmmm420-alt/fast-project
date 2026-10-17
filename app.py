@@ -148,7 +148,7 @@ def admin_debts():
         net_balance=net_balance
     )
 
-# 2.2 مسار عرض الأرصدة الموجبة فقط (المستخدمين الذين لديهم أرصدة موجبة)
+# 2.2 مسار عرض الأرصدة الموجبة فقط
 @app.route("/admin/positive")
 def admin_positive():
     if not session.get("is_admin"):
@@ -170,7 +170,7 @@ def admin_positive():
         net_balance=net_balance
     )
 
-# 3. واجهة تفاصيل المستخدم الخاصة بالأدمن
+# 3. واجهة تفاصيل المستخدم الخاصة بالأدمن (المحدثة بـ Row_Index)
 @app.route("/user/<user_id>")
 def user_dashboard(user_id):
     if not session.get("is_admin"):
@@ -242,7 +242,7 @@ def user_dashboard(user_id):
     user_info["Balance"] = total_balance
     return render_template("user.html", user=user_info, transactions=user_transactions)
 
-# 4. تسجيل العملية والبقاء في نفس الصفحة
+# 4. تسجيل العملية وبقاء المستخدم في نفس الصفحة
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
     try:
@@ -275,7 +275,7 @@ def add_transaction(user_id):
     except Exception as e:
         return f"حدث خطأ أثناء إضافة العملية: {str(e)}", 500
 
-# 4.1 حذف عملية محددة بناءً على مكانها في شيت البيانات
+# 4.1 حذف عملية محددة برقم السطر الفعلي
 @app.route("/user/<user_id>/delete_transaction/<int:index>")
 def delete_transaction(user_id, index):
     if not session.get("is_admin"):
@@ -286,40 +286,18 @@ def delete_transaction(user_id, index):
         except Exception:
             trans_sheet = spreadsheet.worksheet("Main_User")
 
-        users_sheet = spreadsheet.worksheet("users")
-        users_records = users_sheet.get_all_records()
-        user_name = ""
-
-        for u in users_records:
-            if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
-                user_name = str(u.get("Name") or u.get("اسم") or "").strip()
-                break
-
-        target_name = user_name.lower()
-        trans_rows = trans_sheet.get_all_values()
-        
-        user_rows = []
-        for row_idx, row in enumerate(trans_rows[1:], start=2):
-            if len(row) > 0:
-                t_main_user = str(row[0]).strip().lower()
-                if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
-                    user_rows.append(row_idx)
-
-        if 0 <= index < len(user_rows):
-            actual_row_to_delete = user_rows[index]
-            trans_sheet.delete_rows(actual_row_to_delete)
+        if index > 1:
+            trans_sheet.delete_rows(index)
 
         return redirect(url_for("user_dashboard", user_id=user_id))
     except Exception as e:
-        # هذا السطر سيعرض الخطأ التفصيلي على الشاشة مباشرة لنعرف المشكلة
-        return f"<h3>حدث خطأ برمجي أثناء الحذف:</h3><p style='color:red;'>{str(e)}</p>", 500
+        return f"حدث خطأ أثناء الحذف: {str(e)}", 500
 
-# 4.2 تعديل عملية محددة (مسار تجريبي للربط)
+# 4.2 تعديل عملية محددة
 @app.route("/user/<user_id>/edit_transaction/<int:index>")
 def edit_transaction(user_id, index):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
-    # يمكن تخصيص صفحة أو نافذة تعديل التفاصيل هنا
     return redirect(url_for("user_dashboard", user_id=user_id))
 
 # 5. رفع صورة الملف الشخصي
