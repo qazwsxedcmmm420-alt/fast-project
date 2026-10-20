@@ -1,40 +1,56 @@
 import os
-import json
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "super_secret_key_123")
 
-# إعداد اتصال Google Sheets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# رابط الاتصال بقاعدة بيانات MySQL
+# يقرأ الرابط تلقائياً من متغيرة البيئة DATABASE_URL في Render
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "mysql+pymysql://root:password@localhost/deposit_app")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-creds_json_str = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-if creds_json_str:
-    creds_dict = json.loads(creds_json_str)
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-else:
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-
-client = gspread.authorize(creds)
-spreadsheet = client.open("Deposit App Database")
+db = SQLAlchemy(app)
 
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# ----------------- نماذج قاعدة البيانات (MySQL Models) -----------------
+
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    profile_image = db.Column(db.String(255), default='')
+    transactions = db.relationship('Transaction', backref='user', lazy=True, cascade="all, delete-orphan")
+
+class Transaction(db.Model):
+    __tablename__ = 'transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    agent_name = db.Column(db.String(100), nullable=False)
+    trans_type = db.Column(db.String(50), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.now)
+
+# إنشاء الجداول تلقائياً في MySQL عند بدء التشغيل
+with app.app_context():
+    db.create_all()
+
+# ----------------- المسارات والدوال -----------------
 
 @app.route("/")
 def home():
     return redirect(url_for("admin"))
 
-# 1. تسجيل دخول المسؤول (Admin Login)
+# 1. تسجيل دخول وخروج المسؤول (Admin Login / Logout)
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
         password = request.form.get("password", "") or request.form.get("admin_password", "")
-        
         if password == "admin123" or request.form.get("username") == "admin": 
             session["is_admin"] = True
             return redirect(url_for("admin"))
@@ -48,60 +64,22 @@ def admin_logout():
     session.pop("is_admin", None)
     return redirect(url_for("admin_login"))
 
-# دالة مساعدة لجلب وعمل حسابات المستخدمين
+# دالة مساعدة لجلب وعمل حسابات المستخدمين من MySQL
 def get_processed_users():
-    try:
-        users_sheet = spreadsheet.worksheet("users")
-        users_records = users_sheet.get_all_records()
-    except Exception:
-        users_records = []
-
-    try:
-        trans_sheet = spreadsheet.worksheet("transactions")
-    except Exception:
-        try:
-            trans_sheet = spreadsheet.worksheet("Main_User")
-        except Exception:
-            trans_sheet = spreadsheet.add_worksheet(title="transactions", rows="100", cols="5")
-            trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
-
-    try:
-        trans_rows = trans_sheet.get_all_values()
-        trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
-    except Exception:
-        trans_data = []
-
+    users = User.query.all()
     users_list = []
-    for u in users_records:
-        user_id = str(u.get("User_ID") or u.get("id") or "").strip()
-        user_name = str(u.get("Name") or u.get("اسم") or "").strip()
-        profile_img = str(u.get("Profile_Image") or u.get("image") or "")
-
+    for u in users:
         balance = 0.0
-        target_name = user_name.lower()
-
-        for row in trans_data:
-            if len(row) < 4:
-                continue
-            t_main_user = str(row[0]).strip().lower()
-            
-            if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
-                amt_str = str(row[3]).strip() if len(row) > 3 else "0"
-                try:
-                    val = float(amt_str.replace(",", "").strip())
-                except ValueError:
-                    val = 0.0
-                
-                t_type = str(row[2]).strip() if len(row) > 2 else ""
-                if "سحب" in t_type or "(-)" in t_type:
-                    balance -= val
-                else:
-                    balance += val
+        for t in u.transactions:
+            if "سحب" in t.trans_type or "(-)" in t.trans_type:
+                balance -= t.amount
+            else:
+                balance += t.amount
 
         users_list.append({
-            "User_ID": user_id,
-            "Name": user_name,
-            "Profile_Image": profile_img,
+            "User_ID": u.user_id,
+            "Name": u.name,
+            "Profile_Image": u.profile_image,
             "Balance": balance
         })
     return users_list
@@ -133,7 +111,6 @@ def admin_debts():
         return redirect(url_for("admin_login"))
     
     users_list = get_processed_users()
-    
     total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
     total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
     net_balance = total_positive_balances + total_debts
@@ -155,7 +132,6 @@ def admin_positive():
         return redirect(url_for("admin_login"))
     
     users_list = get_processed_users()
-    
     total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
     total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
     net_balance = total_positive_balances + total_debts
@@ -170,128 +146,82 @@ def admin_positive():
         net_balance=net_balance
     )
 
-# 3. واجهة تفاصيل المستخدم الخاصة بالأدمن (المحدثة بـ Row_Index)
+# 3. واجهة تفاصيل المستخدم الخاصة بالأدمن
 @app.route("/user/<user_id>")
 def user_dashboard(user_id):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
-    try:
-        users_sheet = spreadsheet.worksheet("users")
-        users_records = users_sheet.get_all_records()
-    except Exception:
-        return "خطأ في جلب المستخدمين", 500
 
-    user_info = None
-    for u in users_records:
-        if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
-            user_info = {
-                "User_ID": u.get("User_ID") or u.get("id"),
-                "Name": str(u.get("Name") or u.get("اسم") or "").strip(),
-                "Profile_Image": str(u.get("Profile_Image") or u.get("image") or "")
-            }
-            break
-
-    if not user_info:
+    u = User.query.filter_by(user_id=str(user_id).strip()).first()
+    if not u:
         return "المستخدم غير موجود", 404
 
-    try:
-        trans_sheet = spreadsheet.worksheet("transactions")
-    except Exception:
-        try:
-            trans_sheet = spreadsheet.worksheet("Main_User")
-        except Exception:
-            trans_sheet = None
-
-    user_transactions = []
     total_balance = 0.0
-    target_name = user_info["Name"].lower()
+    user_transactions = []
 
-    if trans_sheet:
-        trans_rows = trans_sheet.get_all_values()
-        trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
-        
-        for idx, row in enumerate(trans_data, start=2):
-            if len(row) < 4:
-                continue
-            t_main_user = str(row[0]).strip().lower()
-            
-            if target_name and (target_name == t_main_user or target_name in t_main_user or t_main_user in target_name):
-                agent_val = str(row[1]).strip() if len(row) > 1 else ""
-                t_type = str(row[2]).strip() if len(row) > 2 else ""
-                amt_str = str(row[3]).strip() if len(row) > 3 else "0"
-                date_val = str(row[4]).strip() if len(row) > 4 else ""
+    for t in u.transactions:
+        if "سحب" in t.trans_type or "(-)" in t.trans_type:
+            total_balance -= t.amount
+        else:
+            total_balance += t.amount
 
-                try:
-                    val = float(amt_str.replace(",", "").strip())
-                except ValueError:
-                    val = 0.0
+        user_transactions.append({
+            "Row_Index": t.id,  # الـ ID الفريد للعملية في MySQL
+            "Agent": t.agent_name,
+            "Type": t.trans_type,
+            "Amount": f"{t.amount:,.0f}",
+            "Date": t.date.strftime("%Y-%m-%d %H:%M:%S")
+        })
 
-                if "سحب" in t_type or "(-)" in t_type:
-                    total_balance -= val
-                else:
-                    total_balance += val
+    user_info = {
+        "User_ID": u.user_id,
+        "Name": u.name,
+        "Profile_Image": u.profile_image,
+        "Balance": total_balance
+    }
 
-                user_transactions.append({
-                    "Row_Index": idx,
-                    "Agent": agent_val,
-                    "Type": t_type,
-                    "Amount": amt_str,
-                    "Date": date_val
-                })
-
-    user_info["Balance"] = total_balance
     return render_template("user.html", user=user_info, transactions=user_transactions)
 
-# 4. تسجيل العملية وبقاء المستخدم في نفس الصفحة
+# 4. تسجيل عملية جديدة
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
-    try:
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
+
+    u = User.query.filter_by(user_id=str(user_id).strip()).first()
+    if u:
         agent_name = request.form.get("agent_name", "")
         trans_type = request.form.get("type", "")
-        amount = request.form.get("amount", "0")
-
-        users_sheet = spreadsheet.worksheet("users")
-        users_records = users_sheet.get_all_records()
-        user_name = ""
-
-        for u in users_records:
-            if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
-                user_name = str(u.get("Name") or u.get("اسم") or "").strip()
-                break
-
+        amt_str = request.form.get("amount", "0").replace(",", "").strip()
+        
         try:
-            trans_sheet = spreadsheet.worksheet("transactions")
-        except Exception:
-            try:
-                trans_sheet = spreadsheet.worksheet("Main_User")
-            except Exception:
-                trans_sheet = spreadsheet.add_worksheet(title="transactions", rows="100", cols="5")
-                trans_sheet.append_row(["Main_User", "Agent", "Type", "Amount", "Date"])
+            amount = float(amt_str)
+        except ValueError:
+            amount = 0.0
 
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        trans_sheet.insert_row([user_name, agent_name, trans_type, amount, current_time], 2)
+        new_trans = Transaction(
+            user_id=u.id, 
+            agent_name=agent_name, 
+            trans_type=trans_type, 
+            amount=amount
+        )
+        db.session.add(new_trans)
+        db.session.commit()
 
-        return redirect(request.referrer or url_for("admin"))
-    except Exception as e:
-        return f"حدث خطأ أثناء إضافة العملية: {str(e)}", 500
+    return redirect(request.referrer or url_for("admin"))
 
-# 4.1 حذف عملية محددة برقم السطر الفعلي
+# 4.1 حذف عملية محددة برقم الـ ID من MySQL
 @app.route("/user/<user_id>/delete_transaction/<int:index>")
 def delete_transaction(user_id, index):
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
-    try:
-        try:
-            trans_sheet = spreadsheet.worksheet("transactions")
-        except Exception:
-            trans_sheet = spreadsheet.worksheet("Main_User")
 
-        if index > 1:
-            trans_sheet.delete_rows(index)
+    trans = Transaction.query.get(index)
+    if trans:
+        db.session.delete(trans)
+        db.session.commit()
 
-        return redirect(url_for("user_dashboard", user_id=user_id))
-    except Exception as e:
-        return f"حدث خطأ أثناء الحذف: {str(e)}", 500
+    return redirect(url_for("user_dashboard", user_id=user_id))
 
 # 4.2 تعديل عملية محددة
 @app.route("/user/<user_id>/edit_transaction/<int:index>")
@@ -303,56 +233,32 @@ def edit_transaction(user_id, index):
 # 5. رفع صورة الملف الشخصي
 @app.route("/upload_profile_image/<user_id>", methods=["POST"])
 def upload_profile_image(user_id):
-    try:
-        if 'profile_image' in request.files:
-            file = request.files['profile_image']
-            if file.filename != '':
-                filename = secure_filename(file.filename)
-                filename = f"user_{user_id}_{filename}"
-                file.save(os.path.join(UPLOAD_FOLDER, filename))
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_login"))
 
-                users_sheet = spreadsheet.worksheet("users")
-                header = users_sheet.row_values(1)
+    u = User.query.filter_by(user_id=str(user_id).strip()).first()
+    if u and 'profile_image' in request.files:
+        file = request.files['profile_image']
+        if file.filename != '':
+            filename = secure_filename(file.filename)
+            filename = f"user_{user_id}_{filename}"
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
 
-                if "Profile_Image" not in header:
-                    next_col = len(header) + 1
-                    users_sheet.update_cell(1, next_col, "Profile_Image")
-                    header = users_sheet.row_values(1)
+            u.profile_image = filename
+            db.session.commit()
 
-                col_index = header.index("Profile_Image") + 1
-                records = users_sheet.get_all_records()
-                row_index = None
-
-                for idx, u in enumerate(records, start=2):
-                    if str(u.get("User_ID") or u.get("id") or "").strip() == str(user_id).strip():
-                        row_index = idx
-                        break
-
-                if row_index:
-                    users_sheet.update_cell(row_index, col_index, filename)
-
-        return redirect(request.referrer or url_for("admin"))
-    except Exception as e:
-        print(f"Error saving image: {str(e)}")
-        return redirect(request.referrer or url_for("admin"))
+    return redirect(request.referrer or url_for("admin"))
 
 # 6. واجهة تسجيل دخول المستخدم العادي
 @app.route("/login", methods=["GET", "POST"])
 def user_login():
     if request.method == "POST":
         user_id = request.form.get("user_id", "").strip()
-        users_sheet = spreadsheet.worksheet("users")
-        users_records = users_sheet.get_all_records()
+        u = User.query.filter_by(user_id=user_id).first()
         
-        found_user = None
-        for u in users_records:
-            if str(u.get("User_ID") or u.get("id") or "").strip() == user_id:
-                found_user = u
-                break
-                
-        if found_user:
+        if u:
             session["user_id"] = user_id
-            session["user_name"] = str(found_user.get("Name") or found_user.get("اسم") or "")
+            session["user_name"] = u.name
             return redirect(url_for("my_account"))
         else:
             return render_template("login.html", error="رقم التعريف (ID) غير صحيح، يرجى التأكد.")
@@ -366,74 +272,35 @@ def my_account():
         return redirect(url_for("user_login"))
         
     user_id = str(session["user_id"]).strip()
-    
-    try:
-        users_sheet = spreadsheet.worksheet("users")
-        users_records = users_sheet.get_all_records()
-    except Exception as e:
-        return f"خطأ في الاتصال بورقة المستخدمين: {str(e)}"
-    
-    current_user = None
-    for u in users_records:
-        u_id = str(u.get("User_ID") or u.get("id") or u.get("ID") or "").strip()
-        if u_id == user_id:
-            current_user = {
-                "User_ID": u_id,
-                "Name": str(u.get("Name") or u.get("اسم") or "").strip(),
-                "Profile_Image": str(u.get("Profile_Image") or u.get("image") or "")
-            }
-            break
+    u = User.query.filter_by(user_id=user_id).first()
 
-    if not current_user:
+    if not u:
         session.clear()
         return redirect(url_for("user_login"))
 
-    try:
-        trans_sheet = spreadsheet.worksheet("transactions")
-    except Exception:
-        try:
-            trans_sheet = spreadsheet.worksheet("Main_User")
-        except Exception:
-            trans_sheet = None
-
-    user_transactions = []
     total_balance = 0.0
-    target_name = current_user["Name"].lower()
+    user_transactions = []
 
-    if trans_sheet and target_name:
-        try:
-            trans_rows = trans_sheet.get_all_values()
-            trans_data = trans_rows[1:] if len(trans_rows) > 1 else []
-            for row in trans_data:
-                if len(row) < 4:
-                    continue
-                t_main_user = str(row[0]).strip().lower()
-                if target_name in t_main_user or t_main_user in target_name:
-                    agent_val = str(row[1]).strip() if len(row) > 1 else ""
-                    t_type = str(row[2]).strip() if len(row) > 2 else ""
-                    amt_str = str(row[3]).strip() if len(row) > 3 else "0"
-                    date_val = str(row[4]).strip() if len(row) > 4 else ""
+    for t in u.transactions:
+        if "سحب" in t.trans_type or "(-)" in t.trans_type:
+            total_balance -= t.amount
+        else:
+            total_balance += t.amount
 
-                    try:
-                        val = float(amt_str.replace(",", "").strip())
-                    except ValueError:
-                        val = 0.0
+        user_transactions.append({
+            "Agent": t.agent_name,
+            "Type": t.trans_type,
+            "Amount": f"{t.amount:,.0f}",
+            "Date": t.date.strftime("%Y-%m-%d %H:%M:%S")
+        })
 
-                    if "سحب" in t_type or "(-)" in t_type:
-                        total_balance -= val
-                    else:
-                        total_balance += val
+    current_user = {
+        "User_ID": u.user_id,
+        "Name": u.name,
+        "Profile_Image": u.profile_image,
+        "Balance": total_balance
+    }
 
-                    user_transactions.append({
-                        "Agent": agent_val,
-                        "Type": t_type,
-                        "Amount": amt_str,
-                        "Date": date_val
-                    })
-        except Exception as e:
-            pass
-
-    current_user["Balance"] = total_balance
     return render_template("user_view.html", user=current_user, transactions=user_transactions)
 
 # 8. تسجيل خروج المستخدم العادي
