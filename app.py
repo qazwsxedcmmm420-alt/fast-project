@@ -76,7 +76,7 @@ def home():
 
 # ----------------- 1. نظام تسجيل الدخول الموحد -----------------
 @app.route("/login", methods=["GET", "POST"])
-def login():
+def user_login():
     if request.method == "POST":
         user_id = request.form.get("user_id", "").strip()
         password = request.form.get("password", "").strip()
