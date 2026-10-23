@@ -41,6 +41,21 @@ class Transaction(db.Model):
 # إنشاء الجداول تلقائياً وإنشاء مدير افتراضي عند عدم وجوده
 with app.app_context():
     db.create_all()
+    with app.app_context():
+    db.create_all()
+    
+    # إضافة الأعمدة تلقائياً إذا كانت مفقودة في قاعدة البيانات القديمة
+    try:
+        db.session.execute(db.text("ALTER TABLE users ADD COLUMN password VARCHAR(200) NOT NULL DEFAULT '';"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        
+    try:
+        db.session.execute(db.text("ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user';"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
     
     # التحقق من وجود مدير أساسي، وإذا لم يوجد يتم إنشاؤه تلقائياً
     admin_exists = User.query.filter_by(role='admin').first()
