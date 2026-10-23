@@ -41,8 +41,6 @@ class Transaction(db.Model):
 # إنشاء الجداول تلقائياً وإنشاء مدير افتراضي عند عدم وجوده
 with app.app_context():
     db.create_all()
-    with app.app_context():
-    db.create_all()
     
     # إضافة الأعمدة تلقائياً إذا كانت مفقودة في قاعدة البيانات القديمة
     try:
