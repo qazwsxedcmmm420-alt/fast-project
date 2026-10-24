@@ -65,7 +65,7 @@
 
         .logout-container {
             padding: 15px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         /* محتوى الصفحة الرئيسي */
@@ -192,6 +192,13 @@
                 </div>
             </li>
         </ul>
+
+        <!-- زر إضافة مستخدم جديد -->
+        <div class="px-3 mb-1">
+            <a href="{{ url_for('add_user') }}" class="btn btn-success w-100 py-2" style="border-radius: 8px; font-weight: bold;">
+                <i class="bi bi-person-plus-fill ms-1"></i> إضافة مستخدم جديد
+            </a>
+        </div>
 
         <div class="logout-container">
             <a href="{{ url_for('logout') }}" class="btn btn-danger w-100 py-2" style="border-radius: 8px; font-weight: bold;">
