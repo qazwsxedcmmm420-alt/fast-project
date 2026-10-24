@@ -69,10 +69,52 @@ with app.app_context():
 
 # ----------------- المسارات والدوال -----------------
 
+# --- مسار الصفحة الرئيسية Redirect ---
 @app.route("/")
 def home():
-    # توجيه افتراضي لصفحة تسجيل الدخول الموحدة
-    return redirect(url_for("login"))
+    return redirect(url_for("user_login"))
+
+# --- 1. دخول المستخدم العادي (ID فقط) ---
+@app.route("/login", methods=["GET", "POST"], endpoint="user_login")
+def user_login():
+    if request.method == "POST":
+        user_id = request.form.get("user_id", "").strip()
+        u = User.query.filter_by(user_id=user_id).first()
+        
+        if u and u.role == "user":
+            session["user_db_id"] = u.id
+            session["user_id"] = u.user_id
+            session["user_name"] = u.name
+            session["role"] = u.role
+            return redirect(url_for("my_account"))
+        else:
+            return render_template("login.html", error="معرف الحساب غير موجود أو غير مخصص للمستخدمين")
+            
+    return render_template("login.html")
+
+# --- 2. دخول المسؤول والموظف (ID + Password) ---
+@app.route("/admin/login", methods=["GET", "POST"], endpoint="admin_login")
+def admin_login():
+    if request.method == "POST":
+        user_id = request.form.get("user_id", "").strip()
+        password = request.form.get("password", "").strip()
+        
+        u = User.query.filter_by(user_id=user_id).first()
+        
+        if u and check_password_hash(u.password, password) and u.role in ["admin", "staff"]:
+            session["user_db_id"] = u.id
+            session["user_id"] = u.user_id
+            session["user_name"] = u.name
+            session["role"] = u.role
+            
+            if u.role == "admin":
+                return redirect(url_for("admin"))
+            else:
+                return redirect(url_for("staff_dashboard"))
+        else:
+            return render_template("admin_login.html", error="بيانات الدخول غير صحيحة أو ليس لديك صلاحية مسؤول")
+            
+    return render_template("admin_login.html")
 
 # ----------------- 1. نظام تسجيل الدخول الموحد -----------------
 @app.route("/login", methods=["GET", "POST"])
