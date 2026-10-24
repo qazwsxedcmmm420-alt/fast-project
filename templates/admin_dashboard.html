@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #0b132b; /* خلفية داكنة عميقة ومطابقة للصورة */
+            background-color: #0b132b;
             color: #ffffff;
             font-family: Tahoma, sans-serif;
             margin: 0;
@@ -18,7 +18,7 @@
         /* تصميم القائمة الجانبية (Sidebar) على اليمين */
         .sidebar {
             height: 100vh;
-            background-color: #1c2541; /* لون الشريط الجانبي المطابق للصورة */
+            background-color: #1c2541;
             border-left: 1px solid #3a506b;
             position: fixed;
             top: 0;
@@ -26,7 +26,7 @@
             width: 250px;
             padding-top: 20px;
             z-index: 1000;
-            overflow-y: auto; /* لضمان التمرير في حال زادت البطاقات عن طول الشاشة */
+            overflow-y: auto;
         }
         .sidebar::-webkit-scrollbar {
             width: 5px;
@@ -63,18 +63,12 @@
             transform: translateY(-2px);
         }
 
-        .debt-square-card.active-debt {
-            background-color: #1c2541;
-            border: 1.5px solid #ef4444;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
         .logout-container {
             padding: 15px;
             margin-top: 20px;
         }
 
-        /* محتوى الصفحة الرئيسي لكي يترك مساحة للقائمة الجانبية */
+        /* محتوى الصفحة الرئيسي */
         .main-content {
             margin-right: 250px;
             padding: 30px;
@@ -90,7 +84,7 @@
 
         /* بطاقات المحتوى والمستخدمين */
         .content-card {
-            background-color: #1c2541; /* لون البطاقات الغامق والأنيق */
+            background-color: #1c2541;
             border: 1px solid #3a506b;
             border-radius: 14px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -101,7 +95,6 @@
             transform: translateY(-4px);
         }
 
-        /* جعل الواجهة تسع إلى 5 عناصر في السطر للشاشات الكبيرة */
         .col-custom-5 {
             flex: 0 0 auto;
             width: 20%;
@@ -112,7 +105,6 @@
             border-radius: 14px !important;
         }
 
-        /* توضيح العنوان والمبلغ */
         .balance-label {
             color: #94a3b8 !important;
             font-size: 0.85rem !important;
@@ -131,7 +123,6 @@
         .text-positive { color: #22c55e !important; }
         .text-negative { color: #ef4444 !important; }
 
-        /* التجاوب مع الشاشات المختلفة */
         @media (max-width: 1200px) {
             .col-custom-5 { width: 25%; }
         }
@@ -157,14 +148,14 @@
         <ul class="nav flex-column mb-auto">
             <!-- زر قائمة المستخدمين -->
             <li class="nav-item">
-                <a href="{{ url_for('admin') }}" class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}">
+                <a href="{{ url_for('admin') }}" class="nav-link active">
                     <i class="bi bi-people-fill ms-2"></i> قائمة المستخدمين
                 </a>
             </li>
 
             <!-- البطاقة الأولى: مجموع الديون الكلي (باللون الأحمر) -->
             <li class="nav-item px-3 mt-2">
-                <a href="{{ url_for('admin_debts') }}" class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3 {% if request.endpoint == 'admin_debts' %}active-debt{% endif %}">
+                <div class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3">
                     <div class="mb-1">
                         <i class="bi bi-wallet2 fs-4 text-danger"></i>
                     </div>
@@ -172,12 +163,12 @@
                     <div class="text-danger fw-bold" style="font-size: 0.9rem; direction: ltr;">
                         ${{ "{:,.1f}".format(total_debts) }}
                     </div>
-                </a>
+                </div>
             </li>
 
-            <!-- البطاقة الثانية: مجموع الأرصدة الموجبة (باللون الأخضر) - أصبحت قابلة للضغط -->
+            <!-- البطاقة الثانية: مجموع الأرصدة الموجبة (باللون الأخضر) -->
             <li class="nav-item px-3 mt-2">
-                <a href="{{ url_for('admin_positive') }}" class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3 {% if request.endpoint == 'admin_positive' %}active-debt{% endif %}">
+                <div class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3">
                     <div class="mb-1">
                         <i class="bi bi-cash-stack fs-4 text-success"></i>
                     </div>
@@ -185,7 +176,7 @@
                     <div class="text-success fw-bold" style="font-size: 0.9rem; direction: ltr;">
                         ${{ "{:,.1f}".format(total_positive_balances) }}
                     </div>
-                </a>
+                </div>
             </li>
 
             <!-- البطاقة الثالثة: الفرق الإجمالي (باللون الأصفر) -->
@@ -203,7 +194,7 @@
         </ul>
 
         <div class="logout-container">
-            <a href="{{ url_for('admin_logout') }}" class="btn btn-danger w-100 py-2" style="border-radius: 8px; font-weight: bold;">
+            <a href="{{ url_for('logout') }}" class="btn btn-danger w-100 py-2" style="border-radius: 8px; font-weight: bold;">
                 تسجيل الخروج
             </a>
         </div>
@@ -213,17 +204,9 @@
     <div class="main-content">
         
         <!-- عنوان الصفحة -->
-        <h2 class="header-title">
-            {% if request.endpoint == 'admin_debts' %}
-                المستخدمون الذين لديهم ديون (أرصدة سالبة)
-            {% elif request.endpoint == 'admin_positive' %}
-                المستخدمون الذين لديهم أرصدة موجبة
-            {% else %}
-                قائمة المستخدمين
-            {% endif %}
-        </h2>
+        <h2 class="header-title">قائمة المستخدمين</h2>
 
-        <!-- شبكة عرض المستخدمين (5 في السطر) -->
+        <!-- شبكة عرض المستخدمين -->
         <div class="row g-3">
             {% if users %}
                 {% for user in users %}
@@ -248,7 +231,7 @@
                             <!-- النص التوضيحي للمبلغ -->
                             <span class="balance-label">المبلغ الكلي في الحساب</span>
                             
-                            <!-- المبلغ المالي بشكل واضح مع فواصل الآلاف -->
+                            <!-- المبلغ المالي مع فواصل الآلاف -->
                             <div class="balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
                                 ${{ "{:,.1f}".format(user.Balance) }}
                             </div>
