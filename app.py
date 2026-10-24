@@ -112,42 +112,18 @@ def admin_login():
             else:
                 return redirect(url_for("staff_dashboard"))
         else:
-            return render_template("admin_login.html", error="بيانات الدخول غير صحيحة أو ليس لديك صلاحية مسؤول")
+            return render_template("admin_login.html", error="معرف الحساب أو كلمة المرور غير صحيحة")
             
     return render_template("admin_login.html")
-
-# ----------------- 1. نظام تسجيل الدخول الموحد -----------------
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        user_id = request.form.get("user_id", "").strip()
-        password = request.form.get("password", "").strip()
-        
-        # استعلام عن المستخدم أو المدير أو المسؤول
-        u = User.query.filter_by(user_id=user_id).first()
-        
-        if u and check_password_hash(u.password, password):
-            session["user_db_id"] = u.id
-            session["user_id"] = u.user_id
-            session["user_name"] = u.name
-            session["role"] = u.role
-            
-            # التوجيه بناءً على الصلاحية (Role)
-            if u.role == "admin":
-                return redirect(url_for("admin"))
-            elif u.role == "staff":
-                return redirect(url_for("staff_dashboard"))
-            else:
-                return redirect(url_for("my_account"))
-        else:
-            return render_template("login.html", error="رقم التعريف أو كلمة المرور غير صحيحة")
-            
-    return render_template("login.html")
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    # التوجيه حسب الدور الحالي عند تسجيل الخروج
+    role = session.get("role")
+    if role in ["admin", "staff"]:
+        return redirect(url_for("admin_login"))
+    return redirect(url_for("user_login"))
 
 # دالة مساعدة لجلب وعمل حسابات المستخدمين من MySQL
 def get_processed_users():
@@ -170,11 +146,11 @@ def get_processed_users():
         })
     return users_list
 
-# ----------------- 2. لوحة تحكم المدير (Admin Dashboard) -----------------
+# ----------------- 3. لوحة تحكم المدير (Admin Dashboard) -----------------
 @app.route("/admin")
 def admin():
     if session.get("role") != "admin":
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
     
     users_list = get_processed_users()
     all_users_count = User.query.count()
@@ -191,11 +167,11 @@ def admin():
         net_balance=net_balance
     )
 
-# 2.1 إضافة مستخدم جديد (متاح للمدير فقط)
+# 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
 @app.route("/admin/add_user", methods=["GET", "POST"])
 def add_user():
     if session.get("role") != "admin":
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
         
     if request.method == "POST":
         user_id = request.form.get("user_id", "").strip()
@@ -220,11 +196,11 @@ def add_user():
             
     return render_template("add_user.html")
 
-# 2.2 حذف مستخدم (للمدير فقط)
+# 3.2 حذف مستخدم (للمدير فقط)
 @app.route("/admin/delete_user/<int:id>")
 def delete_user(id):
     if session.get("role") != "admin":
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
         
     u = User.query.get_or_404(id)
     if u.role != "admin": # منع حذف المدير الأساسي عن طريق الخطأ
@@ -233,11 +209,11 @@ def delete_user(id):
         
     return redirect(url_for("admin"))
 
-# ----------------- 3. لوحة تحكم المسؤول / الموظف (Staff Dashboard) -----------------
+# ----------------- 4. لوحة تحكم المسؤول / الموظف (Staff Dashboard) -----------------
 @app.route("/staff")
 def staff_dashboard():
     if session.get("role") not in ["admin", "staff"]:
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
         
     users_list = get_processed_users()
     transactions = Transaction.query.order_by(Transaction.date.desc()).all()
@@ -257,12 +233,11 @@ def staff_dashboard():
 
     return render_template("staff_dashboard.html", users=users_list, transactions=formatted_transactions)
 
-# ----------------- 4. إدارة العمليات (تسجيل، تعديل، حذف) -----------------
+# ----------------- 5. إدارة العمليات (تسجيل، حذف) -----------------
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
-    # متاح للمدير والمسؤول
     if session.get("role") not in ["admin", "staff"]:
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
 
     u = User.query.filter_by(user_id=str(user_id).strip()).first()
     if u:
@@ -286,11 +261,10 @@ def add_transaction(user_id):
 
     return redirect(request.referrer or url_for("admin"))
 
-# حذف عملية محددة (للمدير والمسؤول)
 @app.route("/transaction/delete/<int:index>")
 def delete_transaction(index):
     if session.get("role") not in ["admin", "staff"]:
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
 
     trans = Transaction.query.get(index)
     if trans:
@@ -299,11 +273,11 @@ def delete_transaction(index):
 
     return redirect(request.referrer or url_for("admin"))
 
-# ----------------- 5. واجهة تفاصيل المستخدم الخاصة بالأدمن / المسؤول -----------------
+# ----------------- 6. واجهة تفاصيل المستخدم الخاصة بالأدمن / المسؤول -----------------
 @app.route("/user/<user_id>")
 def user_dashboard(user_id):
     if session.get("role") not in ["admin", "staff"]:
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
 
     u = User.query.filter_by(user_id=str(user_id).strip()).first()
     if not u:
@@ -335,18 +309,18 @@ def user_dashboard(user_id):
 
     return render_template("user.html", user=user_info, transactions=user_transactions)
 
-# ----------------- 6. حساب المستخدم العادي (User View) -----------------
+# ----------------- 7. حساب المستخدم العادي (User View) -----------------
 @app.route("/my_account")
 def my_account():
     if session.get("role") != "user":
-        return redirect(url_for("login"))
+        return redirect(url_for("user_login"))
         
     user_id = str(session["user_id"]).strip()
     u = User.query.filter_by(user_id=user_id).first()
 
     if not u:
         session.clear()
-        return redirect(url_for("login"))
+        return redirect(url_for("user_login"))
 
     total_balance = 0.0
     user_transactions = []
@@ -373,11 +347,11 @@ def my_account():
 
     return render_template("user_view.html", user=current_user, transactions=user_transactions)
 
-# ----------------- 7. رفع صورة الملف الشخصي -----------------
+# ----------------- 8. رفع صورة الملف الشخصي -----------------
 @app.route("/upload_profile_image/<user_id>", methods=["POST"])
 def upload_profile_image(user_id):
     if session.get("role") not in ["admin", "staff"]:
-        return redirect(url_for("login"))
+        return redirect(url_for("admin_login"))
 
     u = User.query.filter_by(user_id=str(user_id).strip()).first()
     if u and 'profile_image' in request.files:
@@ -392,7 +366,7 @@ def upload_profile_image(user_id):
 
     return redirect(request.referrer or url_for("admin"))
 
-# ----------------- 8. ملفات التثبيت (PWA) -----------------
+# ----------------- 9. ملفات التثبيت (PWA) -----------------
 @app.route("/manifest.json")
 def manifest():
     return send_from_directory("static", "manifest.json")
