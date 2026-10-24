@@ -375,5 +375,11 @@ def manifest():
 def service_worker():
     return send_from_directory("static", "sw.js")
 
+@app.route("/admin/debts", endpoint="admin_debts")
+def admin_debts():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+    return redirect(url_for("admin"))
+
 if __name__ == "__main__":
     app.run(debug=True)
