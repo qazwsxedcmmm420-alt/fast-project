@@ -75,8 +75,8 @@ def home():
     return redirect(url_for("login"))
 
 # ----------------- 1. نظام تسجيل الدخول الموحد -----------------
-@app.route("/login", methods=["GET", "POST"])
-def user_login():
+@app.route("/login", methods=["GET", "POST"], endpoint="user_login")
+def login():
     if request.method == "POST":
         user_id = request.form.get("user_id", "").strip()
         password = request.form.get("password", "").strip()
