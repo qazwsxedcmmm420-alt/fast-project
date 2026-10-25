@@ -249,10 +249,8 @@
             {% if transactions %}
                 {% for t in transactions %}
                 {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
-                <!-- أضفنا مُعرّف فريد لكل معاملة يعتمد على الاسم والتاريخ والـ loop index -->
                 <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}" id="trans-{{ loop.index }}">
                     <div class="trans-info">
-                        <!-- دائرة الاختيار -->
                         <div class="custom-checkbox" onclick="toggleCheck('trans-{{ loop.index }}')">
                             <i class="fa-solid fa-check"></i>
                         </div>
@@ -266,7 +264,8 @@
                         </div>
                     </div>
                     <div class="trans-amount {% if is_dep %}amount-positive{% else %}amount-negative{% endif %}">
-                        {{ "{:,.0f}".format(t.Amount|float) if t.Amount else "0" }}{% if is_dep %}+{% else %}-{% endif %}
+                        {% set amt = t.Amount if t.Amount is defined and t.Amount is not none else (t.amount if t.amount is defined and t.amount is not none else 0) %}
+                        ${{ "{:,.0f}".format(amt|float) }}{% if is_dep %}+{% else %}-{% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -278,17 +277,13 @@
     </div>
 
     <script>
-        // دالة تبديل حالة التحديد وحفظها في الذاكرة المحلية للجهاز
         function toggleCheck(cardId) {
             const card = document.getElementById(cardId);
             card.classList.toggle('checked');
-            
-            // حفظ الحالة في المتصفح لتبقى حتى بعد إعادة تحميل الصفحة
             const isChecked = card.classList.contains('checked');
             localStorage.setItem(cardId, isChecked);
         }
 
-        // استرجاع الحالات المحفوظة عند فتح الصفحة
         document.addEventListener("DOMContentLoaded", function() {
             const cards = document.querySelectorAll('.transaction-card');
             cards.forEach(card => {
