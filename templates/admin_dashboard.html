@@ -59,17 +59,38 @@
         }
         .text-positive { color: #22c55e !important; }
         .text-negative { color: #ef4444 !important; }
+        
+        /* تنسيق الأيقونات والبطاقات بالشكل القديم */
+        .stat-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+        .stat-card:hover {
+            border-color: #38bdf8;
+        }
+        .stat-title {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body class="p-4">
     <div class="container-fluid">
         
         <div class="row g-4">
-            <!-- القسم الأيمن: البطاقات والإحصائيات وزر إضافة رأس المال -->
+            <!-- القسم الأيمن: القائمة والبطاقات القديمة -->
             <div class="col-lg-4">
                 <div class="sticky-left-column d-flex flex-column gap-3">
                     
-                    <div class="content-card p-4 text-center">
+                    <div class="content-card p-3 text-center">
                         <h4 class="header-title mb-3">لوحة التحكم</h4>
                         <a href="{{ url_for('admin') }}" class="btn btn-info w-100 py-2 mb-2 fw-bold" style="border-radius: 10px;">
                             <i class="fa-solid fa-users ms-1"></i> قائمة المستخدمين
@@ -79,32 +100,30 @@
                         </a>
                     </div>
 
-                    <!-- بطاقات الديون والأرصدة (بالتصميم القديم) -->
-                    <a href="{{ url_for('admin', filter='debts') }}" class="text-decoration-none">
-                        <div class="content-card p-3 text-center" style="border-color: {% if current_filter == 'debts' %}#ef4444{% else %}#334155{% endif %};">
-                            <div class="text-muted small mb-1">مجموع الديون الكلية</div>
-                            <div class="fs-4 fw-bold text-negative" style="direction: ltr;">${{ "{:,.1f}".format(total_debts) }}</div>
-                        </div>
+                    <!-- بطاقة مجموع الديون الكلية (بالشكل القديم) -->
+                    <a href="{{ url_for('admin', filter='debts') }}" class="stat-card" style="border-color: {% if current_filter == 'debts' %}#ef4444{% else %}#334155{% endif %};">
+                        <div class="stat-title"><i class="fa-solid fa-wallet ms-1"></i> مجموع الديون الكلية</div>
+                        <div class="fs-4 fw-bold text-negative" style="direction: ltr;">${{ "{:,.1f}".format(total_debts) }}</div>
                     </a>
 
-                    <a href="{{ url_for('admin', filter='positive') }}" class="text-decoration-none">
-                        <div class="content-card p-3 text-center" style="border-color: {% if current_filter == 'positive' %}#22c55e{% else %}#334155{% endif %};">
-                            <div class="text-muted small mb-1">مجموع الأرصدة الموجبة</div>
-                            <div class="fs-4 fw-bold text-positive" style="direction: ltr;">${{ "{:,.1f}".format(total_positive_balances) }}</div>
-                        </div>
+                    <!-- بطاقة مجموع الأرصدة الموجبة (بالشكل القديم) -->
+                    <a href="{{ url_for('admin', filter='positive') }}" class="stat-card" style="border-color: {% if current_filter == 'positive' %}#22c55e{% else %}#334155{% endif %};">
+                        <div class="stat-title"><i class="fa-solid fa-building-columns ms-1"></i> مجموع الأرصدة الموجبة</div>
+                        <div class="fs-4 fw-bold text-positive" style="direction: ltr;">${{ "{:,.1f}".format(total_positive_balances) }}</div>
                     </a>
 
-                    <div class="content-card p-3 text-center">
-                        <div class="text-muted small mb-1">الفرق الإجمالي</div>
+                    <!-- بطاقة الفرق الإجمالي (بالشكل القديم) -->
+                    <div class="stat-card">
+                        <div class="stat-title"><i class="fa-solid fa-calculator ms-1"></i> الفرق الإجمالي</div>
                         <div class="fs-4 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
                     </div>
 
-                    <!-- زر وإدارة رأس المال -->
-                    <div class="content-card p-3 text-center">
-                        <div class="text-muted small mb-1">رأس المال المضاف</div>
+                    <!-- بطاقة إضافة رأس المال (بنفس نسق الأيقونات القديمة) -->
+                    <div class="stat-card" style="border-color: #22c55e;">
+                        <div class="stat-title"><i class="fa-solid fa-coins ms-1"></i> رأس المال المضاف</div>
                         <div class="fs-5 fw-bold text-success mb-2" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
-                        <button type="button" class="btn btn-outline-success btn-sm w-100 py-2" data-bs-toggle="modal" data-bs-target="#capitalModal" style="border-radius: 10px;">
-                            <i class="fa-solid fa-coins ms-1"></i> إضافة رأس مال جديد
+                        <button type="button" class="btn btn-outline-success btn-sm w-100 py-1" data-bs-toggle="modal" data-bs-target="#capitalModal" style="border-radius: 8px;">
+                            <i class="fa-solid fa-plus ms-1"></i> إضافة رأس مال جديد
                         </button>
                     </div>
 
@@ -119,7 +138,7 @@
                 </div>
             </div>
 
-            <!-- القسم الأيسر: جدول عرض المستخدمين (التصميم القديم) -->
+            <!-- القسم الأيسر: جدول عرض المستخدمين -->
             <div class="col-lg-8">
                 <div class="content-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
