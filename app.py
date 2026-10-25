@@ -119,7 +119,6 @@ def admin_login():
 @app.route("/logout")
 def logout():
     session.clear()
-    # التوجيه حسب الدور الحالي عند تسجيل الخروج
     role = session.get("role")
     if role in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
@@ -127,7 +126,7 @@ def logout():
 
 # دالة مساعدة لجلب وعمل حسابات المستخدمين من MySQL
 def get_processed_users():
-    users = User.query.filter_by(role='user').all() # جلب المستخدمين العاديين فقط للحسابات
+    users = User.query.filter_by(role='user').all()
     users_list = []
     for u in users:
         balance = 0.0
@@ -177,7 +176,7 @@ def add_user():
         user_id = request.form.get("user_id", "").strip()
         name = request.form.get("name", "").strip()
         password = request.form.get("password", "").strip()
-        role = request.form.get("role", "user") # user, staff, admin
+        role = request.form.get("role", "user")
         
         if User.query.filter_by(user_id=user_id).first():
             return render_template("add_user.html", error="رقم التعريف مستخدم مسبقاً.")
@@ -203,7 +202,7 @@ def delete_user(id):
         return redirect(url_for("admin_login"))
         
     u = User.query.get_or_404(id)
-    if u.role != "admin": # منع حذف المدير الأساسي عن طريق الخطأ
+    if u.role != "admin":
         db.session.delete(u)
         db.session.commit()
         
@@ -241,9 +240,18 @@ def add_transaction(user_id):
 
     u = User.query.filter_by(user_id=str(user_id).strip()).first()
     if u:
-        agent_name = session.get("user_name", "المسؤول")
+        # قراءة اسم مسجل العملية المدخل في حقل النموذج بدقة
+        agent_name = request.form.get("agent_name", "").strip()
+        if not agent_name:
+            agent_name = session.get("user_name", "المدير العام")
+            
         trans_type = request.form.get("type", "")
-        amt_str = request.form.get("amount", "0").replace(",", "").strip()
+        
+        # جلب المبلغ من الحقل المخفي أو الظاهر ومعالجة الفواصل لمنع ظهور الصفر
+        amt_str = request.form.get("amount", "").strip()
+        if not amt_str:
+            amt_str = request.form.get("formatted_amount", "0")
+        amt_str = amt_str.replace(",", "").strip()
         
         try:
             amount = float(amt_str)
@@ -274,30 +282,30 @@ def delete_transaction(index):
     return redirect(request.referrer or url_for("admin"))
 
 # ----------------- 6. واجهة تفاصيل المستخدم الخاصة بالأدمن / المسؤول -----------------
-@app.route("/user/<user_id>")
+@app.route("/user/<user_id>", methods=["GET", "POST"])
 def user_dashboard(user_id):
     if session.get("role") not in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
-
+        
     u = User.query.filter_by(user_id=str(user_id).strip()).first()
     if not u:
         return "المستخدم غير موجود", 404
 
     total_balance = 0.0
     user_transactions = []
-
+    
     for t in u.transactions:
-        if "سحب" in t.trans_type or "(-)" in t.trans_type:
-            total_balance -= t.amount
+        if "سحب" in str(t.trans_type) or "(-)" in str(t.trans_type):
+            total_balance -= float(t.amount or 0)
         else:
-            total_balance += t.amount
-
+            total_balance += float(t.amount or 0)
+            
         user_transactions.append({
             "Row_Index": t.id,
-            "Agent": t.agent_name,
+            "Agent": t.agent_name if t.agent_name else "المدير العام",
             "Type": t.trans_type,
-            "Amount": f"{t.amount:,.0f}",
-            "Date": t.date.strftime("%Y-%m-%d %H:%M:%S")
+            "Amount": float(t.amount or 0),
+            "Date": t.date.strftime("%Y-%m-%d %H:%M:%S") if t.date else ""
         })
 
     user_info = {
