@@ -173,17 +173,22 @@ def admin():
     total_debts = sum(u['Balance'] for u in all_users_list if u['Balance'] < 0)
     total_positive_balances = sum(u['Balance'] for u in all_users_list if u['Balance'] > 0)
     
-    # حساب رأس المال الإجمالي
-    total_capital = db.session.query(db.func.sum(Capital.amount)).scalar() or 0.0
-    net_balance = total_positive_balances + total_debts + total_capital
+    # حساب الفرق الإجمالي بين الأرصدة الموجبة والسالبة فقط
+    net_balance = total_positive_balances + total_debts
+    
+    # رأس المال الأساسي المضاف من القاعدة
+    base_capital = db.session.query(db.func.sum(Capital.amount)).scalar() or 0.0
+    
+    # إجمالي رأس المال مضافاً إليه الفرق الإجمالي
+    total_capital = base_capital + net_balance
 
     return render_template(
         "admin_dashboard.html", 
         users=users_list, 
         total_debts=total_debts,
         total_positive_balances=total_positive_balances,
-        total_capital=total_capital,
         net_balance=net_balance,
+        total_capital=total_capital,
         current_filter=filter_type
     )
 
@@ -193,7 +198,7 @@ def admin_debts():
         return redirect(url_for("admin_login"))
     return redirect(url_for("admin", filter="debts"))
 
-# مسار إضافة رأس المال الجديد
+# مسار إضافة وتعديل رأس المال الجديد
 @app.route("/admin/add_capital", methods=["POST"])
 def add_capital():
     if session.get("role") != "admin":
@@ -207,7 +212,7 @@ def add_capital():
     except ValueError:
         amount = 0.0
         
-    if amount > 0:
+    if amount != 0:
         new_capital = Capital(amount=amount, note=note)
         db.session.add(new_capital)
         db.session.commit()
