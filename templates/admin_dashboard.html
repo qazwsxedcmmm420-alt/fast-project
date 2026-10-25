@@ -2,258 +2,229 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم - قائمة المستخدمين</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المدير</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #0b132b;
-            color: #ffffff;
+            background-color: #0b0f19;
+            color: #f8fafc;
             font-family: Tahoma, sans-serif;
-            margin: 0;
-            overflow-x: hidden;
+            padding-bottom: 30px;
         }
-
-        /* تصميم القائمة الجانبية (Sidebar) على اليمين */
-        .sidebar {
-            height: 100vh;
-            background-color: #1c2541;
-            border-left: 1px solid #3a506b;
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 250px;
-            padding-top: 20px;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        .sidebar::-webkit-scrollbar {
-            width: 5px;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background-color: #3a506b;
-            border-radius: 10px;
-        }
-
-        .sidebar .nav-link {
-            color: #ffffff;
-            padding: 10px 20px;
-            margin: 3px 15px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            text-align: right;
-        }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background-color: #3b82f6;
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        /* تنسيق بطاقات الإحصائيات المربعة في الشريط الجانبي */
-        .debt-square-card {
-            background-color: #0b132b;
-            border: 1px solid #3a506b;
-            transition: all 0.3s ease;
-        }
-
-        .debt-square-card:hover {
-            background-color: #16223d;
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-        }
-
-        .logout-container {
-            padding: 15px;
-            margin-top: 10px;
-        }
-
-        /* محتوى الصفحة الرئيسي */
-        .main-content {
-            margin-right: 250px;
-            padding: 30px;
-        }
-
-        .header-title {
-            color: #ffffff;
-            font-weight: bold;
-            text-align: right;
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-        }
-
-        /* بطاقات المحتوى والمستخدمين */
         .content-card {
-            background-color: #1c2541;
-            border: 1px solid #3a506b;
-            border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s ease-in-out;
+            background-color: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
-
-        .content-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .col-custom-5 {
-            flex: 0 0 auto;
-            width: 20%;
-        }
-
-        .user-card {
-            padding: 20px !important;
-            border-radius: 14px !important;
-        }
-
-        .balance-label {
-            color: #94a3b8 !important;
-            font-size: 0.85rem !important;
-            margin-top: 6px;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .balance-amount {
-            font-size: 1.1rem;
+        .header-title {
+            color: #38bdf8;
             font-weight: bold;
-            display: inline-block;
-            direction: ltr;
         }
-
-        .text-positive { color: #22c55e !important; }
-        .text-negative { color: #ef4444 !important; }
-
-        @media (max-width: 1200px) {
-            .col-custom-5 { width: 25%; }
+        .table-dark-custom th {
+            background-color: #1a2332 !important;
+            color: #38bdf8 !important;
+            border-color: #334155 !important;
+            text-align: center;
+            padding: 12px;
         }
-        @media (max-width: 992px) {
-            .main-content { margin-right: 0; padding: 15px; }
-            .sidebar { display: none; }
-            .col-custom-5 { width: 33.333%; }
+        .table-dark-custom td {
+            background-color: #131b2e !important;
+            border-color: #1e293b !important;
+            color: #ffffff !important;
+            text-align: center;
+            padding: 12px;
+            vertical-align: middle;
         }
-        @media (max-width: 768px) {
-            .col-custom-5 { width: 50%; }
+        .form-control {
+            background-color: #0f172a;
+            color: #fff;
+            border-color: #334155;
         }
-        @media (max-width: 576px) {
-            .col-custom-5 { width: 100%; }
+        .form-control:focus {
+            background-color: #0f172a;
+            color: #fff;
+            border-color: #38bdf8;
+            box-shadow: none;
         }
     </style>
 </head>
-<body>
-
-    <!-- الشريط الجانبي (Sidebar) -->
-    <div class="sidebar d-flex flex-column">
-        <h4 class="text-center mb-3 text-light fw-bold" style="font-size: 1.2rem;">لوحة التحكم</h4>
+<body class="p-3">
+    <div class="container-fluid" style="max-width: 1200px;">
         
-        <ul class="nav flex-column mb-auto">
-            <!-- زر قائمة المستخدمين -->
-            <li class="nav-item">
-                <a href="{{ url_for('admin') }}" class="nav-link active">
-                    <i class="bi bi-people-fill ms-2"></i> قائمة المستخدمين
+        <!-- رأس الصفحة -->
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 content-card">
+            <div>
+                <h3 class="header-title mb-1">لوحة التحكم الرئيسية</h3>
+                <p class="text-muted mb-0 small">مرحباً بك، المدير العام</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('staff_dashboard') }}" class="btn btn-outline-info btn-sm">
+                    <i class="fa-solid fa-users-gear ms-1"></i> لوحة الموظفين
                 </a>
-            </li>
-
-            <!-- البطاقة الأولى: مجموع الديون الكلي (باللون الأحمر) -->
-            <li class="nav-item px-3 mt-2">
-                <div class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3">
-                    <div class="mb-1">
-                        <i class="bi bi-wallet2 fs-4 text-danger"></i>
-                    </div>
-                    <span class="d-block text-light fw-bold mb-1" style="font-size: 0.8rem;">مجموع الديون الكلية</span>
-                    <div class="text-danger fw-bold" style="font-size: 0.9rem; direction: ltr;">
-                        ${{ "{:,.1f}".format(total_debts) }}
-                    </div>
-                </div>
-            </li>
-
-            <!-- البطاقة الثانية: مجموع الأرصدة الموجبة (باللون الأخضر) -->
-            <li class="nav-item px-3 mt-2">
-                <div class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3">
-                    <div class="mb-1">
-                        <i class="bi bi-cash-stack fs-4 text-success"></i>
-                    </div>
-                    <span class="d-block text-light fw-bold mb-1" style="font-size: 0.8rem;">مجموع الأرصدة الموجبة</span>
-                    <div class="text-success fw-bold" style="font-size: 0.9rem; direction: ltr;">
-                        ${{ "{:,.1f}".format(total_positive_balances) }}
-                    </div>
-                </div>
-            </li>
-
-            <!-- البطاقة الثالثة: الفرق الإجمالي (باللون الأصفر) -->
-            <li class="nav-item px-3 mt-2">
-                <div class="debt-square-card text-decoration-none d-block text-center p-2 rounded-3">
-                    <div class="mb-1">
-                        <i class="bi bi-calculator fs-4 text-warning"></i>
-                    </div>
-                    <span class="d-block text-light fw-bold mb-1" style="font-size: 0.8rem;">الفرق الإجمالي</span>
-                    <div class="text-warning fw-bold" style="font-size: 0.9rem; direction: ltr;">
-                        ${{ "{:,.1f}".format(net_balance) }}
-                    </div>
-                </div>
-            </li>
-        </ul>
-
-        <!-- زر إضافة مستخدم جديد -->
-        <div class="px-3 mb-1">
-            <a href="{{ url_for('add_user') }}" class="btn btn-success w-100 py-2" style="border-radius: 8px; font-weight: bold;">
-                <i class="bi bi-person-plus-fill ms-1"></i> إضافة مستخدم جديد
-            </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="fa-solid fa-arrow-right-from-bracket ms-1"></i> خروج
+                </a>
+            </div>
         </div>
 
-        <div class="logout-container">
-            <a href="{{ url_for('logout') }}" class="btn btn-danger w-100 py-2" style="border-radius: 8px; font-weight: bold;">
-                تسجيل الخروج
-            </a>
-        </div>
-    </div>
-
-    <!-- المحتوى الرئيسي -->
-    <div class="main-content">
-        
-        <!-- عنوان الصفحة -->
-        <h2 class="header-title">قائمة المستخدمين</h2>
-
-        <!-- شبكة عرض المستخدمين -->
-        <div class="row g-3">
-            {% if users %}
-                {% for user in users %}
-                <div class="col-custom-5">
-                    <a href="{{ url_for('user_dashboard', user_id=user.User_ID) }}" class="text-decoration-none">
-                        <div class="content-card user-card text-center p-3 h-100">
-                            
-                            <!-- صورة أو أيقونة المستخدم -->
-                            <div class="mb-3">
-                                {% if user.Profile_Image %}
-                                    <img src="{{ url_for('static', filename='uploads/' + user.Profile_Image) }}" class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #3a506b;">
-                                {% else %}
-                                    <div class="avatar-icon text-secondary rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; background-color: #0b132b;">
-                                        <i class="bi bi-person-fill fs-3 text-light"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- اسم المستخدم -->
-                            <h5 class="text-light fw-bold mb-1" style="font-size: 1rem;">{{ user.Name }}</h5>
-                            
-                            <!-- النص التوضيحي للمبلغ -->
-                            <span class="balance-label">المبلغ الكلي في الحساب</span>
-                            
-                            <!-- المبلغ المالي مع فواصل الآلاف -->
-                            <div class="balance-amount {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
-                                ${{ "{:,.1f}".format(user.Balance) }}
-                            </div>
-
+        <div class="row g-4">
+            <!-- الشريط الجانبي للإحصائيات وأزرار التحكم -->
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-3">
+                    
+                    <!-- قائمة المستخدمين (عرض الكل) -->
+                    <a href="{{ url_for('admin') }}" class="text-decoration-none">
+                        <div class="content-card p-3 text-center transition-hover" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border-radius: 14px;">
+                            <i class="fa-solid fa-users fs-4 mb-1"></i>
+                            <h5 class="mb-0 fw-bold">قائمة المستخدمين الكلية</h5>
                         </div>
                     </a>
+
+                    <!-- زر تصفية الديون الكلية -->
+                    <a href="{{ url_for('admin', filter='debts') }}" class="text-decoration-none">
+                        <div class="content-card p-3 text-center" style="border: 1px solid {% if current_filter == 'debts' %}#ef4444{% else %}#1e293b{% endif %};">
+                            <div class="text-muted small mb-1">مجموع الديون الكلية (اضغط للتصفية)</div>
+                            <div class="fs-4 fw-bold text-danger" style="direction: ltr;">${{ "{:,.1f}".format(total_debts) }}</div>
+                        </div>
+                    </a>
+
+                    <!-- زر تصفية الأرصدة الموجبة -->
+                    <a href="{{ url_for('admin', filter='positive') }}" class="text-decoration-none">
+                        <div class="content-card p-3 text-center" style="border: 1px solid {% if current_filter == 'positive' %}#22c55e{% else %}#1e293b{% endif %};">
+                            <div class="text-muted small mb-1">مجموع الأرصدة الموجبة</div>
+                            <div class="fs-4 fw-bold text-success" style="direction: ltr;">${{ "{:,.1f}".format(total_positive_balances) }}</div>
+                        </div>
+                    </a>
+
+                    <!-- بطاقة الفرق الإجمالي -->
+                    <div class="content-card p-3 text-center">
+                        <div class="text-muted small mb-1">الفرق الإجمالي (صافي الحسابات)</div>
+                        <div class="fs-4 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
+                    </div>
+
+                    <!-- بطاقة رأس المال وإضافته -->
+                    <div class="content-card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">رأس المال المضاف:</span>
+                            <span class="fw-bold text-success" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</span>
+                        </div>
+                        <button type="button" class="btn btn-outline-info btn-sm w-100 py-2" data-bs-toggle="modal" data-bs-target="#capitalModal" style="border-radius: 10px;">
+                            <i class="fa-solid fa-coins ms-1"></i> إضافة رأس مال جديد
+                        </button>
+                    </div>
+
+                    <!-- زر إضافة مستخدم جديد -->
+                    <a href="{{ url_for('add_user') }}" class="btn btn-success py-2 fw-bold" style="border-radius: 10px;">
+                        <i class="fa-solid fa-user-plus ms-1"></i> إضافة مستخدم جديد
+                    </a>
+
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="col-12 text-center py-5">
-                    <p class="text-muted fs-5">لا يوجد مستخدمون مطابقون للعرض حالياً.</p>
+            </div>
+
+            <!-- جدول عرض المستخدمين -->
+            <div class="col-lg-8">
+                <div class="content-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="text-info mb-0">
+                            {% if current_filter == 'debts' %}
+                                حسابات الديون فقط
+                            {% elif current_filter == 'positive' %}
+                                الحسابات الموجبة فقط
+                            {% else %}
+                                كافة حسابات المستخدمين
+                            {% endif %}
+                        </h4>
+                        {% if current_filter != 'all' %}
+                            <a href="{{ url_for('admin') }}" class="btn btn-sm btn-outline-secondary">إلغاء التصفية (عرض الكل)</a>
+                        {% endif %}
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>الصورة</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>المعرف (ID)</th>
+                                    <th>الرصيد الكلي</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if users %}
+                                    {% for u in users %}
+                                    <tr>
+                                        <td>
+                                            {% if u.Profile_Image %}
+                                                <img src="{{ url_for('static', filename='uploads/' + u.Profile_Image) }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <i class="fa-solid fa-user"></i>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold">{{ u.Name }}</td>
+                                        <td><code>{{ u.User_ID }}</code></td>
+                                        <td class="fw-bold" style="direction: ltr;">
+                                            <span class="{% if u.Balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                ${{ "{:,.1f}".format(u.Balance) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="btn btn-sm btn-primary" title="عرض الحساب">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('delete_user', id=u.DB_ID) }}" class="btn btn-sm btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟')" title="حذف">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-muted py-4">لا توجد بيانات مطابقة للعرض حالياً</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            {% endif %}
+            </div>
         </div>
 
+    </div>
+
+    <!-- نافذة منبثقة (Modal) لإضافة رأس المال -->
+    <div class="modal fade" id="capitalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: #131b2e; color: #fff; border: 1px solid #1e293b;">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-info">إضافة رأس مال جديد</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('add_capital') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-light">مبلغ رأس المال</label>
+                            <input type="text" name="capital_amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light">ملاحظة أو الوصف</label>
+                            <input type="text" name="capital_note" class="form-control" value="رأس المال الأساسي">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-success btn-sm px-4">حفظ الإضافة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

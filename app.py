@@ -38,6 +38,14 @@ class Transaction(db.Model):
     amount = db.Column(db.Float, nullable=False)
     date = db.Column(db.DateTime, default=datetime.now)
 
+# نموذج رأس المال الجديد
+class Capital(db.Model):
+    __tablename__ = 'capital'
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float, nullable=False)
+    note = db.Column(db.String(255), default='رأس المال الأساسي')
+    date = db.Column(db.DateTime, default=datetime.now)
+
 # إنشاء الجداول تلقائياً وإنشاء مدير افتراضي عند عدم وجوده
 with app.app_context():
     db.create_all()
@@ -151,20 +159,60 @@ def admin():
     if session.get("role") != "admin":
         return redirect(url_for("admin_login"))
     
-    users_list = get_processed_users()
-    all_users_count = User.query.count()
+    filter_type = request.args.get("filter", "all")
+    all_users_list = get_processed_users()
     
-    total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
-    total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
-    net_balance = total_positive_balances + total_debts
+    # تصفية المستخدمين بناءً على الفلتر المطلوب
+    if filter_type == "debts":
+        users_list = [u for u in all_users_list if u['Balance'] < 0]
+    elif filter_type == "positive":
+        users_list = [u for u in all_users_list if u['Balance'] > 0]
+    else:
+        users_list = all_users_list
+    
+    total_debts = sum(u['Balance'] for u in all_users_list if u['Balance'] < 0)
+    total_positive_balances = sum(u['Balance'] for u in all_users_list if u['Balance'] > 0)
+    
+    # حساب رأس المال الإجمالي
+    total_capital = db.session.query(db.func.sum(Capital.amount)).scalar() or 0.0
+    net_balance = total_positive_balances + total_debts + total_capital
 
     return render_template(
         "admin_dashboard.html", 
         users=users_list, 
         total_debts=total_debts,
         total_positive_balances=total_positive_balances,
-        net_balance=net_balance
+        total_capital=total_capital,
+        net_balance=net_balance,
+        current_filter=filter_type
     )
+
+@app.route("/admin/debts", endpoint="admin_debts")
+def admin_debts():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+    return redirect(url_for("admin", filter="debts"))
+
+# مسار إضافة رأس المال الجديد
+@app.route("/admin/add_capital", methods=["POST"])
+def add_capital():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+        
+    amt_str = request.form.get("capital_amount", "0").replace(",", "").strip()
+    note = request.form.get("capital_note", "رأس المال الأساسي").strip()
+    
+    try:
+        amount = float(amt_str)
+    except ValueError:
+        amount = 0.0
+        
+    if amount > 0:
+        new_capital = Capital(amount=amount, note=note)
+        db.session.add(new_capital)
+        db.session.commit()
+        
+    return redirect(url_for("admin"))
 
 # 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
 @app.route("/admin/add_user", methods=["GET", "POST"])
@@ -240,14 +288,12 @@ def add_transaction(user_id):
 
     u = User.query.filter_by(user_id=str(user_id).strip()).first()
     if u:
-        # قراءة اسم مسجل العملية المدخل في حقل النموذج بدقة
         agent_name = request.form.get("agent_name", "").strip()
         if not agent_name:
             agent_name = session.get("user_name", "المدير العام")
             
         trans_type = request.form.get("type", "")
         
-        # جلب المبلغ من الحقل المخفي أو الظاهر ومعالجة الفواصل لمنع ظهور الصفر
         amt_str = request.form.get("amount", "").strip()
         if not amt_str:
             amt_str = request.form.get("formatted_amount", "0")
@@ -382,12 +428,6 @@ def manifest():
 @app.route("/sw.js")
 def service_worker():
     return send_from_directory("static", "sw.js")
-
-@app.route("/admin/debts", endpoint="admin_debts")
-def admin_debts():
-    if session.get("role") != "admin":
-        return redirect(url_for("admin_login"))
-    return redirect(url_for("admin"))
 
 if __name__ == "__main__":
     app.run(debug=True)
