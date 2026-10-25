@@ -7,9 +7,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-main: #090d16;
+            --bg-card: #111827;
+            --border-color: #1f293d;
+            --accent-glow: #38bdf8;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
         body {
-            background-color: #0d1117;
-            color: #e2e8f0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             font-family: Tahoma, sans-serif;
             padding: 20px;
         }
@@ -18,10 +26,10 @@
             font-weight: bold;
         }
         .content-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
         .sticky-left-column {
             position: sticky;
@@ -29,25 +37,25 @@
             height: fit-content;
         }
         .form-control {
-            background-color: #0d1117;
+            background-color: #090d16;
             color: #fff;
-            border-color: #30363d;
+            border-color: var(--border-color);
         }
         .form-control:focus {
-            background-color: #0d1117;
+            background-color: #090d16;
             color: #fff;
             border-color: #38bdf8;
             box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
         }
-        .text-positive { color: #3fb950 !important; }
-        .text-negative { color: #f85149 !important; }
+        .text-positive { color: #34d399 !important; }
+        .text-negative { color: #f87171 !important; }
         
         /* تصميم البطاقات الجانبية والإحصائيات */
         .stat-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px;
             text-align: center;
             cursor: pointer;
             transition: all 0.25s ease;
@@ -59,39 +67,41 @@
             transform: translateY(-2px);
         }
         .stat-title {
-            color: #8b949e;
-            font-size: 0.85rem;
-            margin-bottom: 6px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 4px;
         }
 
-        /* تصميم بطاقات المستخدمين الاحترافية */
+        /* تصميم بطاقات المستخدمين الاحترافية الجديدة */
         .user-grid-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 24px 20px;
+            padding: 24px 16px;
             text-align: center;
-            transition: all 0.25s ease;
+            transition: all 0.3s ease;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            overflow: hidden;
+            text-decoration: none !important;
+            color: inherit !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .user-grid-card:hover {
             border-color: #38bdf8;
-            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15);
-            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(56, 189, 248, 0.15);
+            transform: translateY(-5px);
         }
         
-        /* زر الحذف السريع العلوي */
+        /* زر حذف سريع في زاوية البطاقة */
         .delete-btn-corner {
             position: absolute;
             top: 12px;
             left: 12px;
-            background: rgba(248, 81, 73, 0.1);
-            color: #f85149;
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
             border: none;
             border-radius: 50%;
             width: 32px;
@@ -100,81 +110,81 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            text-decoration: none;
+            z-index: 5;
         }
         .delete-btn-corner:hover {
-            background: #f85149;
+            background: #f87171;
             color: #fff;
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid" style="max-width: 1400px;">
+    <div class="container-fluid" style="max-width: 1450px;">
         
-        <div class="row g-4">
-            <!-- القسم الأيمن: القائمة والبطاقات والإحصائيات ورأس المال -->
-            <div class="col-lg-4">
-                <div class="sticky-left-column d-flex flex-column gap-3">
+        <div class="row g-3">
+            <!-- الشريط الجانبي المصغر (أصبح col-lg-3 ليكون أصغر حجماً) -->
+            <div class="col-lg-3">
+                <div class="sticky-left-column d-flex flex-column gap-2.5">
                     
-                    <div class="content-card p-4 text-center">
-                        <h4 class="header-title mb-3">لوحة التحكم</h4>
-                        <a href="{{ url_for('admin') }}" class="btn btn-info w-100 py-2 mb-2 fw-bold" style="border-radius: 10px;">
-                            <i class="fa-solid fa-users ms-1"></i> قائمة المستخدمين
+                    <div class="content-card p-3 text-center">
+                        <h5 class="header-title mb-2">لوحة التحكم</h5>
+                        <a href="{{ url_for('admin') }}" class="btn btn-info btn-sm w-100 py-1.5 mb-1.5 fw-bold" style="border-radius: 8px;">
+                            <i class="fa-solid fa-users ms-1"></i> المستخدمين
                         </a>
-                        <a href="{{ url_for('staff_dashboard') }}" class="btn btn-outline-light w-100 py-2" style="border-radius: 10px;">
-                            <i class="fa-solid fa-users-gear ms-1"></i> لوحة الموظفين
+                        <a href="{{ url_for('staff_dashboard') }}" class="btn btn-outline-light btn-sm w-100 py-1.5" style="border-radius: 8px;">
+                            <i class="fa-solid fa-users-gear ms-1"></i> الموظفين
                         </a>
                     </div>
 
                     <!-- بطاقة الديون الكلية -->
-                    <a href="{{ url_for('admin', filter='debts') }}" class="stat-card" style="border-color: {% if current_filter == 'debts' %}#f85149{% else %}#30363d{% endif %};">
-                        <div class="stat-title"><i class="fa-solid fa-wallet ms-1"></i> مجموع الديون الكلية</div>
-                        <div class="fs-4 fw-bold text-negative" style="direction: ltr;">${{ "{:,.1f}".format(total_debts) }}</div>
+                    <a href="{{ url_for('admin', filter='debts') }}" class="stat-card" style="border-color: {% if current_filter == 'debts' %}#f87171{% else %}var(--border-color){% endif %};">
+                        <div class="stat-title"><i class="fa-solid fa-wallet ms-1"></i> إجمالي الديون الكلية</div>
+                        <div class="fs-5 fw-bold text-negative" style="direction: ltr;">${{ "{:,.1f}".format(total_debts) }}</div>
                     </a>
 
                     <!-- بطاقة الأرصدة الموجبة -->
-                    <a href="{{ url_for('admin', filter='positive') }}" class="stat-card" style="border-color: {% if current_filter == 'positive' %}#3fb950{% else %}#30363d{% endif %};">
-                        <div class="stat-title"><i class="fa-solid fa-building-columns ms-1"></i> مجموع الأرصدة الموجبة</div>
-                        <div class="fs-4 fw-bold text-positive" style="direction: ltr;">${{ "{:,.1f}".format(total_positive_balances) }}</div>
+                    <a href="{{ url_for('admin', filter='positive') }}" class="stat-card" style="border-color: {% if current_filter == 'positive' %}#34d399{% else %}var(--border-color){% endif %};">
+                        <div class="stat-title"><i class="fa-solid fa-building-columns ms-1"></i> الأرصدة الموجبة</div>
+                        <div class="fs-5 fw-bold text-positive" style="direction: ltr;">${{ "{:,.1f}".format(total_positive_balances) }}</div>
                     </a>
 
                     <!-- بطاقة الفرق الإجمالي -->
                     <div class="stat-card">
                         <div class="stat-title"><i class="fa-solid fa-calculator ms-1"></i> الفرق الإجمالي</div>
-                        <div class="fs-4 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
+                        <div class="fs-5 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
                     </div>
 
                     <!-- بطاقة رأس المال وإضافته -->
-                    <div class="stat-card" style="border-color: #3fb950;">
+                    <div class="stat-card" style="border-color: #34d399;">
                         <div class="stat-title"><i class="fa-solid fa-coins ms-1"></i> رأس المال المضاف</div>
-                        <div class="fs-5 fw-bold text-positive mb-3" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
-                        <button type="button" class="btn btn-success btn-sm w-100 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#capitalModal" style="border-radius: 8px;">
-                            <i class="fa-solid fa-plus ms-1"></i> إضافة رأس مال جديد
+                        <div class="fs-6 fw-bold text-positive mb-2" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
+                        <button type="button" class="btn btn-success btn-sm w-100 py-1.5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#capitalModal" style="border-radius: 8px;">
+                            <i class="fa-solid fa-plus ms-1"></i> إضافة رأس مال
                         </button>
                     </div>
 
-                    <a href="{{ url_for('add_user') }}" class="btn btn-primary py-2 fw-bold shadow-sm" style="border-radius: 10px;">
+                    <a href="{{ url_for('add_user') }}" class="btn btn-primary btn-sm py-2 fw-bold shadow-sm" style="border-radius: 8px;">
                         <i class="fa-solid fa-user-plus ms-1"></i> إضافة مستخدم جديد
                     </a>
 
-                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger py-2" style="border-radius: 10px;">
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm py-1.5" style="border-radius: 8px;">
                         <i class="fa-solid fa-arrow-right-from-bracket ms-1"></i> تسجيل الخروج
                     </a>
 
                 </div>
             </div>
 
-            <!-- القسم الأيسر: عرض المستخدمين على شكل أيقونات احترافية ومتناسقة -->
-            <div class="col-lg-8">
+            <!-- القسم الأكبر لعرض المستخدمين (col-lg-9) -->
+            <div class="col-lg-9">
                 <div class="content-card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-                        <h4 class="text-info mb-0 fw-bold">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-10">
+                        <h4 class="text-info mb-0 fw-bold fs-5">
                             {% if current_filter == 'debts' %}
                                 حسابات الديون فقط
                             {% elif current_filter == 'positive' %}
                                 الحسابات الموجبة فقط
                             {% else %}
-                                قائمة المستخدمين
+                                قائمة حسابات المستخدمين
                             {% endif %}
                         </h4>
                         {% if current_filter != 'all' %}
@@ -187,32 +197,32 @@
                         {% if users %}
                             {% for u in users %}
                             <div class="col-md-6 col-xl-4">
-                                <div class="user-grid-card">
-                                    <!-- زر حذف سريع في زاوية البطاقة -->
-                                    <a href="{{ url_for('delete_user', id=u.DB_ID) }}" class="delete-btn-corner" onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟')" title="حذف المستخدم">
-                                        <i class="fa-solid fa-trash-can fa-sm"></i>
-                                    </a>
+                                <!-- بطاقة المستخدم بالكامل أصبحت رابطاً تفاعلياً يفتح الحساب عند النقر عليها -->
+                                <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="user-grid-card">
+                                    
+                                    <!-- زر حذف مستقل في الزاوية لكي لا يؤدي الضغط عليه لفتح الحساب -->
+                                    <button type="button" class="delete-btn-corner" onclick="event.preventDefault(); window.location.href='{{ url_for('delete_user', id=u.DB_ID) }}'; if(!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) event.stopPropagation();" title="حذف المستخدم">
+                                        <i class="fa-solid fa-trash-can fa-xs"></i>
+                                    </button>
 
-                                    <div>
+                                    <div class="w-100">
                                         <!-- صورة المستخدم الشخصية -->
-                                        <div class="mb-3 mt-2">
+                                        <div class="mb-3 mt-1">
                                             {% if u.Profile_Image %}
-                                                <img src="{{ url_for('static', filename='uploads/' + u.Profile_Image) }}" class="rounded-circle shadow" style="width: 75px; height: 75px; object-fit: cover; border: 3px solid #38bdf8;">
+                                                <img src="{{ url_for('static', filename='uploads/' + u.Profile_Image) }}" class="rounded-circle shadow-sm" style="width: 70px; height: 70px; object-fit: cover; border: 2.5px solid #38bdf8;">
                                             {% else %}
-                                                <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow" style="width: 75px; height: 75px; border: 3px solid #30363d;">
-                                                    <i class="fa-solid fa-user fs-3"></i>
+                                                <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 70px; height: 70px; border: 2.5px solid var(--border-color);">
+                                                    <i class="fa-solid fa-user fs-4"></i>
                                                 </div>
                                             {% endif %}
                                         </div>
 
-                                        <!-- اسم المستخدم -->
-                                        <h5 class="fw-bold mb-1 text-white text-truncate">{{ u.Name }}</h5>
-                                        <!-- معرف الحساب -->
-                                        <p class="text-muted small mb-3">المعرف: <code class="text-info">{{ u.User_ID }}</code></p>
+                                        <!-- اسم المستخدم (تم إخفاء الـ ID تماماً كما طلبت) -->
+                                        <h5 class="fw-bold mb-3 text-white text-truncate">{{ u.Name }}</h5>
                                         
-                                        <!-- الرصيد الكلي -->
-                                        <div class="p-2 rounded mb-3" style="background-color: #0d1117; border: 1px solid #30363d;">
-                                            <div class="text-muted" style="font-size: 0.75rem;">الرصيد الكلي</div>
+                                        <!-- صندوق الرصيد الكلي -->
+                                        <div class="py-2 px-3 rounded mb-2" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+                                            <div class="text-muted" style="font-size: 0.7rem;">الرصيد الكلي</div>
                                             <div class="fs-5 fw-bold" style="direction: ltr;">
                                                 <span class="{% if u.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
                                                     ${{ "{:,.1f}".format(u.Balance) }}
@@ -221,13 +231,11 @@
                                         </div>
                                     </div>
 
-                                    <!-- زر عرض الحساب -->
-                                    <div>
-                                        <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="btn btn-sm btn-outline-info w-100 py-2 fw-bold" style="border-radius: 8px;">
-                                            <i class="fa-solid fa-eye ms-1"></i> إدارة وعرض الحساب
-                                        </a>
+                                    <!-- تلميح بسيط بالأسفل يوضح أن البطاقة قابلة للنقر -->
+                                    <div class="text-info mt-2" style="font-size: 0.75rem;">
+                                        <i class="fa-solid fa-hand-pointer ms-1"></i> اضغط لإدارة الحساب
                                     </div>
-                                </div>
+                                </a>
                             </div>
                             {% endfor %}
                         {% else %}
@@ -246,9 +254,9 @@
     <!-- نافذة منبثقة (Modal) لإضافة رأس المال -->
     <div class="modal fade" id="capitalModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background-color: #161b22; color: #fff; border: 1px solid #30363d;">
-                <div class="modal-header border-bottom border-secondary border-opacity-25">
-                    <h5 class="modal-title text-info"><i class="fa-solid fa-coins ms-1"></i> إضافة رأس مال جديد</h5>
+            <div class="modal-content" style="background-color: var(--bg-card); color: #fff; border: 1px solid var(--border-color);">
+                <div class="modal-header border-bottom border-secondary border-opacity-10">
+                    <h5 class="modal-title text-info fs-6"><i class="fa-solid fa-coins ms-1"></i> إضافة رأس مال جديد</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ url_for('add_capital') }}" method="POST">
@@ -262,7 +270,7 @@
                             <input type="text" name="capital_note" class="form-control py-2" value="رأس المال الأساسي">
                         </div>
                     </div>
-                    <div class="modal-footer border-top border-secondary border-opacity-25">
+                    <div class="modal-footer border-top border-secondary border-opacity-10">
                         <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">إلغاء</button>
                         <button type="submit" class="btn btn-success btn-sm px-4 fw-bold">حفظ الإضافة</button>
                     </div>
