@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -17,6 +17,10 @@ db = SQLAlchemy(app)
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# دالة لتحديد التوقيت المحلي (مثلاً توقيت العراق UTC+3)
+def get_local_time():
+    return datetime.utcnow() + timedelta(hours=3)
+
 # ----------------- نماذج قاعدة البيانات (MySQL Models) -----------------
 
 class User(db.Model):
@@ -27,7 +31,8 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False, default='') # كلمة المرور المشفرة
     role = db.Column(db.String(20), nullable=False, default='user')  # 'admin' (مدير), 'staff' (مسؤول), 'user' (مستخدم)
     profile_image = db.Column(db.String(255), default='')
-    transactions = db.relationship('Transaction', backref='user', lazy=True, cascade="all, delete-orphan")
+    # ترتيب العمليات تصبح تنازلياً (الأحدث أولاً) تلقائياً
+    transactions = db.relationship('Transaction', backref='user', lazy=True, cascade="all, delete-orphan", order_by="Transaction.date.desc()")
 
 class Transaction(db.Model):
     __tablename__ = 'transactions'
@@ -36,7 +41,7 @@ class Transaction(db.Model):
     agent_name = db.Column(db.String(100), nullable=False)
     trans_type = db.Column(db.String(50), nullable=False)
     amount = db.Column(db.Float, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.now)
+    date = db.Column(db.DateTime, default=get_local_time)
 
 # نموذج رأس المال الجديد
 class Capital(db.Model):
@@ -44,7 +49,7 @@ class Capital(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
     note = db.Column(db.String(255), default='رأس المال الأساسي')
-    date = db.Column(db.DateTime, default=datetime.now)
+    date = db.Column(db.DateTime, default=get_local_time)
 
 # إنشاء الجداول تلقائياً وإنشاء مدير افتراضي عند عدم وجوده
 with app.app_context():
