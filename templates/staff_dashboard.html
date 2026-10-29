@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المسؤول</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #070a13;
+            color: #f8fafc;
+            font-family: Tahoma, sans-serif;
+            padding: 20px;
+        }
+        .content-card {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        .form-control, .form-select {
+            background-color: #070a13;
+            color: #fff;
+            border-color: #1e293b;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #070a13;
+            color: #fff;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        .text-positive { color: #2ecc71 !important; }
+        .text-negative { color: #e74c3c !important; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid" style="max-width: 1400px;">
+        
+        <!-- رأس الصفحة -->
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 content-card">
+            <div>
+                <h4 class="text-info mb-1 fw-bold"><i class="fa-solid fa-user-shield ms-2"></i>لوحة تحكم المسؤول</h4>
+                <p class="text-muted mb-0 small">مرحباً بك، {{ session.get('user_name') }} (صلاحيات تسجيل ومتابعة العمليات)</p>
+            </div>
+            <div>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm px-3">
+                    <i class="fa-solid fa-arrow-right-from-bracket ms-1"></i> تسجيل الخروج
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- القسم الأيمن: تسجيل عملية جديدة للمستخدمين -->
+            <div class="col-lg-4">
+                <div class="content-card p-4">
+                    <h5 class="text-info mb-3"><i class="fa-solid fa-file-invoice-dollar ms-1"></i> تسجيل عملية جديدة</h5>
+                    <form action="" method="POST" id="transForm">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">اختر المستخدم</label>
+                            <select name="selected_user_id" id="userSelect" class="form-select" required>
+                                <option value="" selected disabled>-- اختر الحساب --</option>
+                                {% for u in users %}
+                                <option value="{{ u.User_ID }}">{{ u.Name }} (الرصيد: ${{ "{:,.1f}".format(u.Balance) }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">نوع العملية</label>
+                            <select name="type" class="form-select" required>
+                                <option value="إيداع (+)">إيداع (+)</option>
+                                <option value="سحب (-)">سحب (-)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">المبلغ</label>
+                            <input type="text" name="amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 fw-bold py-2" id="submitBtn">
+                            <i class="fa-solid fa-check ms-1"></i> تنفيذ وتسجيل العملية
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- القسم الأيسر: سجل العمليات السابقة -->
+            <div class="col-lg-8">
+                <div class="content-card p-4">
+                    <h5 class="text-info mb-3"><i class="fa-solid fa-clock-rotate-left ms-1"></i> سجل العمليات السابقة</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover align-middle text-center" style="background-color: #0f172a;">
+                            <thead>
+                                <tr style="background-color: #1e293b; color: #38bdf8;">
+                                    <th>اسم المستخدم</th>
+                                    <th>النوع</th>
+                                    <th>المبلغ</th>
+                                    <th>بواسطة المسؤول</th>
+                                    <th>التاريخ والوقت</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if transactions %}
+                                    {% for t in transactions %}
+                                    <tr>
+                                        <td class="fw-bold text-white">{{ t.User_Name }}</td>
+                                        <td>
+                                            <span class="badge {% if 'إيداع' in t.Type or '+' in t.Type %}bg-success{% else %}bg-danger{% endif %} px-2 py-1">
+                                                {{ t.Type }}
+                                            </span>
+                                        </td>
+                                        <td class="fw-bold" style="direction: ltr;">${{ t.Amount }}</td>
+                                        <td class="text-muted small">{{ t.Agent }}</td>
+                                        <td class="text-muted small" style="direction: ltr;">{{ t.Date }}</td>
+                                        <td>
+                                            <a href="{{ url_for('delete_transaction', index=t.ID) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟')" title="حذف العملية">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-muted py-4">لا توجد عمليات مسجلة حتى الآن</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // تغيير مسار الـ Form ديناميكياً بناءً على المستخدم المختار
+        document.getElementById('userSelect').addEventListener('change', function() {
+            var userId = this.value;
+            if(userId) {
+                document.getElementById('transForm').action = "/add_transaction/" + userId;
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

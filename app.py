@@ -17,7 +17,7 @@ db = SQLAlchemy(app)
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# دالة لتحديد التوقيت المحلي (مثلاً توقيت العراق UTC+3)
+# دالة لتحديد التوقيت المحلي (توقيت العراق UTC+3)
 def get_local_time():
     return datetime.utcnow() + timedelta(hours=3)
 
@@ -31,7 +31,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False, default='') # كلمة المرور المشفرة
     role = db.Column(db.String(20), nullable=False, default='user')  # 'admin' (مدير), 'staff' (مسؤول), 'user' (مستخدم)
     profile_image = db.Column(db.String(255), default='')
-    # ترتيب العمليات تصبح تنازلياً (الأحدث أولاً) تلقائياً
+    # ترتيب العمليات تنازلياً (الأحدث أولاً) تلقائياً
     transactions = db.relationship('Transaction', backref='user', lazy=True, cascade="all, delete-orphan", order_by="Transaction.date.desc()")
 
 class Transaction(db.Model):
@@ -203,7 +203,7 @@ def admin_debts():
         return redirect(url_for("admin_login"))
     return redirect(url_for("admin", filter="debts"))
 
-# مسار إضافة وتعديل رأس المال الجديد
+# مسار إضافة وتعديل رأس المال الجديد (للمدير فقط)
 @app.route("/admin/add_capital", methods=["POST"])
 def add_capital():
     if session.get("role") != "admin":
@@ -269,6 +269,7 @@ def delete_user(id):
 # ----------------- 4. لوحة تحكم المسؤول / الموظف (Staff Dashboard) -----------------
 @app.route("/staff")
 def staff_dashboard():
+    # السماح للمدير أو المسؤول بالدخول هنا
     if session.get("role") not in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
         
@@ -300,7 +301,7 @@ def add_transaction(user_id):
     if u:
         agent_name = request.form.get("agent_name", "").strip()
         if not agent_name:
-            agent_name = session.get("user_name", "المدير العام")
+            agent_name = session.get("user_name", "المسؤول")
             
         trans_type = request.form.get("type", "")
         
@@ -323,7 +324,7 @@ def add_transaction(user_id):
         db.session.add(new_trans)
         db.session.commit()
 
-    return redirect(request.referrer or url_for("admin"))
+    return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
 
 @app.route("/transaction/delete/<int:index>")
 def delete_transaction(index):
@@ -335,7 +336,7 @@ def delete_transaction(index):
         db.session.delete(trans)
         db.session.commit()
 
-    return redirect(request.referrer or url_for("admin"))
+    return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
 
 # ----------------- 6. واجهة تفاصيل المستخدم الخاصة بالأدمن / المسؤول -----------------
 @app.route("/user/<user_id>", methods=["GET", "POST"])
