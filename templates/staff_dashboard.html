@@ -7,22 +7,38 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-main: #070a13;
+            --bg-card: #0f172a;
+            --border-color: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
         body {
-            background-color: #070a13;
-            color: #f8fafc;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             font-family: Tahoma, sans-serif;
-            padding: 20px;
+            padding: 15px;
+        }
+        .header-title {
+            color: #38bdf8;
+            font-weight: bold;
         }
         .content-card {
-            background-color: #0f172a;
-            border: 1px solid #1e293b;
-            border-radius: 16px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        .sticky-left-column {
+            position: sticky;
+            top: 15px;
+            height: fit-content;
         }
         .form-control, .form-select {
             background-color: #070a13;
             color: #fff;
-            border-color: #1e293b;
+            border-color: var(--border-color);
         }
         .form-control:focus, .form-select:focus {
             background-color: #070a13;
@@ -32,72 +48,164 @@
         }
         .text-positive { color: #2ecc71 !important; }
         .text-negative { color: #e74c3c !important; }
+        
+        /* البطاقات الجانبية */
+        .stat-card {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border: 1px solid #312e81;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            display: block;
+        }
+        .stat-title {
+            color: #a5b4fc;
+            font-size: 0.78rem;
+            margin-bottom: 3px;
+        }
+
+        /* تصميم بطاقات المستخدمين (4 بطاقات في السطر) */
+        .user-grid-card {
+            background: linear-gradient(145deg, #111827 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            text-decoration: none !important;
+            color: inherit !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .user-grid-card:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 12px 35px rgba(56, 189, 248, 0.2);
+            transform: translateY(-5px);
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid" style="max-width: 1400px;">
+    <div class="container-fluid" style="max-width: 1600px;">
         
-        <!-- رأس الصفحة -->
-        <div class="d-flex justify-content-between align-items-center mb-4 p-3 content-card">
-            <div>
-                <h4 class="text-info mb-1 fw-bold"><i class="fa-solid fa-user-shield ms-2"></i>لوحة تحكم المسؤول</h4>
-                <p class="text-muted mb-0 small">مرحباً بك، {{ session.get('user_name') }} (صلاحيات تسجيل ومتابعة العمليات)</p>
-            </div>
-            <div>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm px-3">
-                    <i class="fa-solid fa-arrow-right-from-bracket ms-1"></i> تسجيل الخروج
-                </a>
-            </div>
-        </div>
+        <div class="row g-3">
+            <!-- الشريط الجانبي المصغر للمسؤول -->
+            <div class="col-lg-3">
+                <div class="sticky-left-column d-flex flex-column gap-3">
+                    
+                    <div class="content-card p-3 text-center">
+                        <h6 class="header-title mb-1">لوحة المسؤول</h6>
+                        <p class="text-muted small mb-0">{{ session.get('user_name') }}</p>
+                    </div>
 
-        <div class="row g-4">
-            <!-- القسم الأيمن: تسجيل عملية جديدة للمستخدمين -->
-            <div class="col-lg-4">
-                <div class="content-card p-4">
-                    <h5 class="text-info mb-3"><i class="fa-solid fa-file-invoice-dollar ms-1"></i> تسجيل عملية جديدة</h5>
-                    <form action="" method="POST" id="transForm">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">اختر المستخدم</label>
-                            <select name="selected_user_id" id="userSelect" class="form-select" required>
-                                <option value="" selected disabled>-- اختر الحساب --</option>
-                                {% for u in users %}
-                                <option value="{{ u.User_ID }}">{{ u.Name }} (الرصيد: ${{ "{:,.1f}".format(u.Balance) }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <!-- نموذج تسجيل عملية جديدة سريع من القائمة الجانبية -->
+                    <div class="content-card p-3">
+                        <h6 class="text-info mb-3 fs-6"><i class="fa-solid fa-file-invoice-dollar ms-1"></i> تسجيل عملية جديدة</h6>
+                        <form action="" method="POST" id="transForm">
+                            <div class="mb-2">
+                                <label class="form-label text-light small" style="font-size: 0.75rem;">اختر الحساب</label>
+                                <select name="selected_user_id" id="userSelect" class="form-select form-select-sm" required>
+                                    <option value="" selected disabled>-- اختر الحساب --</option>
+                                    {% for u in users %}
+                                    <option value="{{ u.User_ID }}">{{ u.Name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">نوع العملية</label>
-                            <select name="type" class="form-select" required>
-                                <option value="إيداع (+)">إيداع (+)</option>
-                                <option value="سحب (-)">سحب (-)</option>
-                            </select>
-                        </div>
+                            <div class="mb-2">
+                                <label class="form-label text-light small" style="font-size: 0.75rem;">نوع العملية</label>
+                                <select name="type" class="form-select form-select-sm" required>
+                                    <option value="إيداع (+)">إيداع (+)</option>
+                                    <option value="سحب (-)">سحب (-)</option>
+                                </select>
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">المبلغ</label>
-                            <input type="text" name="amount" class="form-control" placeholder="أدخل المبلغ..." required autocomplete="off">
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label text-light small" style="font-size: 0.75rem;">المبلغ</label>
+                                <input type="text" name="amount" class="form-control form-control-sm" placeholder="أدخل المبلغ..." required autocomplete="off">
+                            </div>
 
-                        <button type="submit" class="btn btn-success w-100 fw-bold py-2" id="submitBtn">
-                            <i class="fa-solid fa-check ms-1"></i> تنفيذ وتسجيل العملية
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-1.5 shadow-sm" style="border-radius: 6px;">
+                                <i class="fa-solid fa-check ms-1"></i> تنفيذ العملية
+                            </button>
+                        </form>
+                    </div>
+
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm py-1.5" style="border-radius: 8px;">
+                        <i class="fa-solid fa-arrow-right-from-bracket ms-1"></i> تسجيل الخروج
+                    </a>
+
                 </div>
             </div>
 
-            <!-- القسم الأيسر: سجل العمليات السابقة -->
-            <div class="col-lg-8">
+            <!-- القسم الأكبر لعرض المستخدمين (4 بطاقات في السطر) وسجل العمليات -->
+            <div class="col-lg-9">
+                
+                <!-- شبكة حسابات المستخدمين (4 في السطر) -->
+                <div class="content-card p-4 mb-4">
+                    <h5 class="text-info mb-4 fw-bold fs-6">
+                        <i class="fa-solid fa-users ms-1"></i> حسابات المستخدمين (اضغط على الحساب للإدارة)
+                    </h5>
+
+                    <div class="row g-3">
+                        {% if users %}
+                            {% for u in users %}
+                            <div class="col-sm-6 col-md-4 col-xl-3">
+                                <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="user-grid-card">
+                                    <div class="w-100">
+                                        <div class="mb-2 mt-1">
+                                            {% if u.Profile_Image %}
+                                                <img src="{{ url_for('static', filename='uploads/' + u.Profile_Image) }}" class="rounded-circle shadow" style="width: 55px; height: 55px; object-fit: cover; border: 2px solid #38bdf8;">
+                                            {% else %}
+                                                <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow" style="width: 55px; height: 55px; border: 2px solid #334155;">
+                                                    <i class="fa-solid fa-user fs-5"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <h6 class="fw-bold mb-2 text-white text-truncate" title="{{ u.Name }}">{{ u.Name }}</h6>
+                                        
+                                        <!-- عرض الرصيد أو الدين بوضوح -->
+                                        <div class="py-1.5 px-2 rounded mb-2" style="background-color: #070a13; border: 1px solid #1e293b;">
+                                            <div class="text-muted mb-0.5" style="font-size: 0.65rem; font-weight: bold;">الرصيد / الدين</div>
+                                            <div class="fs-6 fw-bold" style="direction: ltr;">
+                                                <span class="{% if u.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}">
+                                                    ${{ "{:,.1f}".format(u.Balance) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-info" style="font-size: 0.65rem;">
+                                        <i class="fa-solid fa-hand-pointer ms-1"></i> إدارة الحساب
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center text-muted py-3">
+                                <p class="mb-0">لا توجد حسابات مستخدمين حالياً</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- سجل العمليات السابقة -->
                 <div class="content-card p-4">
-                    <h5 class="text-info mb-3"><i class="fa-solid fa-clock-rotate-left ms-1"></i> سجل العمليات السابقة</h5>
+                    <h5 class="text-info mb-3 fw-bold fs-6">
+                        <i class="fa-solid fa-clock-rotate-left ms-1"></i> سجل العمليات السابقة
+                    </h5>
                     <div class="table-responsive">
-                        <table class="table table-dark table-striped table-hover align-middle text-center" style="background-color: #0f172a;">
+                        <table class="table table-dark table-striped table-hover align-middle text-center" style="background-color: #0f172a; font-size: 0.85rem;">
                             <thead>
                                 <tr style="background-color: #1e293b; color: #38bdf8;">
                                     <th>اسم المستخدم</th>
                                     <th>النوع</th>
                                     <th>المبلغ</th>
-                                    <th>بواسطة المسؤول</th>
+                                    <th>بواسطة</th>
                                     <th>التاريخ والوقت</th>
                                     <th>إجراء</th>
                                 </tr>
@@ -116,8 +224,8 @@
                                         <td class="text-muted small">{{ t.Agent }}</td>
                                         <td class="text-muted small" style="direction: ltr;">{{ t.Date }}</td>
                                         <td>
-                                            <a href="{{ url_for('delete_transaction', index=t.ID) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟')" title="حذف العملية">
-                                                <i class="fa-solid fa-trash"></i>
+                                            <a href="{{ url_for('delete_transaction', index=t.ID) }}" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟')" title="حذف العملية">
+                                                <i class="fa-solid fa-trash fa-xs"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -131,13 +239,14 @@
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
 
     </div>
 
     <script>
-        // تغيير مسار الـ Form ديناميكياً بناءً على المستخدم المختار
+        // تغيير مسار الـ Form ديناميكياً عند اختيار المستخدم من القائمة الجانبية
         document.getElementById('userSelect').addEventListener('change', function() {
             var userId = this.value;
             if(userId) {
