@@ -269,29 +269,13 @@ def delete_user(id):
 # ----------------- 4. لوحة تحكم المسؤول / الموظف (Staff Dashboard) -----------------
 @app.route("/staff")
 def staff_dashboard():
-    # السماح للمدير أو المسؤول بالدخول هنا
     if session.get("role") not in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
         
     users_list = get_processed_users()
-    transactions = Transaction.query.order_by(Transaction.date.desc()).all()
-    
-    formatted_transactions = []
-    for t in transactions:
-        user_obj = User.query.get(t.user_id)
-        formatted_transactions.append({
-            "ID": t.id,
-            "User_Name": user_obj.name if user_obj else "حذف",
-            "User_ID": user_obj.user_id if user_obj else "",
-            "Agent": t.agent_name,
-            "Type": t.trans_type,
-            "Amount": f"{t.amount:,.0f}",
-            "Date": t.date.strftime("%Y-%m-%d %H:%M:%S")
-        })
+    return render_template("staff_dashboard.html", users=users_list)
 
-    return render_template("staff_dashboard.html", users=users_list, transactions=formatted_transactions)
-
-# ----------------- 5. إدارة العمليات (تسجيل، حذف) -----------------
+# ----------------- 5. إدارة العمليات (تسجيل، تعديل، حذف) -----------------
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
     if session.get("role") not in ["admin", "staff"]:
@@ -325,6 +309,29 @@ def add_transaction(user_id):
         db.session.commit()
 
     return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
+
+# مسار تعديل عملية سابقة (يدعم كافة صيغ الروابط المتوقعة لتجنب 404)
+@app.route("/transaction/edit/<int:index>", methods=["GET", "POST"], endpoint="edit_transaction")
+@app.route("/user/<user_id>/edit_transaction/<int:index>", methods=["GET", "POST"])
+@app.route("/user/<user_id>/edit transaction/<int:index>", methods=["GET", "POST"])
+def edit_transaction(index, user_id=None):
+    if session.get("role") not in ["admin", "staff"]:
+        return redirect(url_for("admin_login"))
+
+    trans = Transaction.query.get_or_404(index)
+    
+    if request.method == "POST":
+        trans.trans_type = request.form.get("type", trans.trans_type)
+        amt_str = request.form.get("amount", "0").replace(",", "").strip()
+        try:
+            trans.amount = float(amt_str)
+        except ValueError:
+            pass
+            
+        db.session.commit()
+        return redirect(url_for("user_dashboard", user_id=trans.user.user_id))
+
+    return render_template("edit_transaction.html", transaction=trans)
 
 @app.route("/transaction/delete/<int:index>")
 def delete_transaction(index):
