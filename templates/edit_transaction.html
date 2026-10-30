@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تعديل العملية</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #070a13; color: #f8fafc; font-family: Tahoma, sans-serif; padding: 40px; }
+        .card-box { background-color: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 30px; max-width: 500px; margin: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .form-control, .form-select { background-color: #070a13; color: #fff; border-color: #1e293b; }
+        .form-control:focus, .form-select:focus { background-color: #070a13; color: #fff; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.2); }
+    </style>
+</head>
+<body>
+    <div class="card-box">
+        <h4 class="text-info mb-4 fw-bold text-center"><i class="fa-solid fa-pen-to-square ms-2"></i>تعديل تفاصيل العملية</h4>
+        
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label text-muted small">نوع العملية</label>
+                <select name="type" class="form-select" required>
+                    <option value="إيداع (+)" {% if 'إيداع' in transaction.trans_type or '+' in transaction.trans_type %}selected{% endif %}>إيداع (+)</option>
+                    <option value="سحب (-)" {% if 'سحب' in transaction.trans_type or '-' in transaction.trans_type %}selected{% endif %}>سحب (-)</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted small">المبلغ</label>
+                <input type="text" name="amount" class="form-control" value="{{ transaction.amount }}" required autocomplete="off">
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success w-100 fw-bold py-2">
+                    <i class="fa-solid fa-check ms-1"></i> حفظ التعديلات
+                </button>
+                <a href="{{ url_for('user_dashboard', user_id=transaction.user.user_id) }}" class="btn btn-outline-secondary w-100 py-2">
+                    إلغاء
+                </a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
