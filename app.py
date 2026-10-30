@@ -178,13 +178,8 @@ def admin():
     total_debts = sum(u['Balance'] for u in all_users_list if u['Balance'] < 0)
     total_positive_balances = sum(u['Balance'] for u in all_users_list if u['Balance'] > 0)
     
-    # حساب الفرق الإجمالي بين الأرصدة الموجبة والسالبة فقط
     net_balance = total_positive_balances + total_debts
-    
-    # رأس المال الأساسي المضاف من القاعدة
     base_capital = db.session.query(db.func.sum(Capital.amount)).scalar() or 0.0
-    
-    # إجمالي رأس المال مضافاً إليه الفرق الإجمالي
     total_capital = base_capital + net_balance
 
     return render_template(
@@ -266,7 +261,7 @@ def delete_user(id):
         
     return redirect(url_for("admin"))
 
-# ----------------- 4. لوحة تحكم المسؤول / الموظف (Staff Dashboard) -----------------
+# ----------------- 4. لوحة تحكم المسؤول (Staff Dashboard) -----------------
 @app.route("/staff")
 def staff_dashboard():
     if session.get("role") not in ["admin", "staff"]:
@@ -310,10 +305,9 @@ def add_transaction(user_id):
 
     return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
 
-# مسار تعديل عملية سابقة (يدعم كافة صيغ الروابط المتوقعة لتجنب 404)
-@app.route("/transaction/edit/<int:index>", methods=["GET", "POST"], endpoint="edit_transaction")
-@app.route("/user/<user_id>/edit_transaction/<int:index>", methods=["GET", "POST"])
-@app.route("/user/<user_id>/edit transaction/<int:index>", methods=["GET", "POST"])
+# مسار تعديل عملية سابقة مع دعم كافة الصيغ لتفادي الأخطاء
+@app.route("/user/<user_id>/edit_transaction/<int:index>", methods=["GET", "POST"], endpoint="edit_transaction_page")
+@app.route("/transaction/edit/<int:index>", methods=["GET", "POST"])
 def edit_transaction(index, user_id=None):
     if session.get("role") not in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
@@ -329,7 +323,11 @@ def edit_transaction(index, user_id=None):
             pass
             
         db.session.commit()
-        return redirect(url_for("user_dashboard", user_id=trans.user.user_id))
+        
+        target_user = User.query.get(trans.user_id)
+        if target_user:
+            return redirect(url_for("user_dashboard", user_id=target_user.user_id))
+        return redirect(url_for("admin"))
 
     return render_template("edit_transaction.html", transaction=trans)
 
