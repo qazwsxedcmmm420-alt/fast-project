@@ -18,6 +18,12 @@
         <h4 class="text-info mb-4 fw-bold text-center"><i class="fa-solid fa-pen-to-square ms-2"></i>تعديل تفاصيل العملية</h4>
         
         <form method="POST">
+            <!-- خانة تعديل اسم مسجل العملية -->
+            <div class="mb-3">
+                <label class="form-label text-muted small">اسم مسجل العملية</label>
+                <input type="text" name="agent_name" class="form-control" value="{{ transaction.agent_name }}" required autocomplete="off">
+            </div>
+
             <div class="mb-3">
                 <label class="form-label text-muted small">نوع العملية</label>
                 <select name="type" class="form-select" required>
