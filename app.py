@@ -268,7 +268,19 @@ def staff_dashboard():
         return redirect(url_for("admin_login"))
         
     users_list = get_processed_users()
-    return render_template("staff_dashboard.html", users=users_list)
+    
+    # حساب إحصائيات الديون والأرصدة والفرق الإجمالي لواجهة المسؤول
+    total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
+    total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
+    net_balance = total_positive_balances + total_debts
+
+    return render_template(
+        "staff_dashboard.html", 
+        users=users_list,
+        total_debts=total_debts,
+        total_positive_balances=total_positive_balances,
+        net_balance=net_balance
+    )
 
 # ----------------- 5. إدارة العمليات (تسجيل، تعديل، حذف) -----------------
 @app.route("/add_transaction/<user_id>", methods=["POST"])
@@ -305,7 +317,7 @@ def add_transaction(user_id):
 
     return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
 
-# مسار تعديل عملية سابقة مع تحديث اسم مسجل العملية (الوكيل)
+# مسار تعديل عملية سابقة مع تحديث اسم مسجل العملية والنوع والمبلغ
 @app.route("/user/<user_id>/edit_transaction/<int:index>", methods=["GET", "POST"], endpoint="edit_transaction_page")
 @app.route("/transaction/edit/<int:index>", methods=["GET", "POST"])
 def edit_transaction(index, user_id=None):
@@ -316,7 +328,7 @@ def edit_transaction(index, user_id=None):
     
     if request.method == "POST":
         trans.trans_type = request.form.get("type", trans.trans_type)
-        trans.agent_name = request.form.get("agent_name", trans.agent_name).strip() # تحديث اسم مسجل العملية
+        trans.agent_name = request.form.get("agent_name", trans.agent_name).strip()
         amt_str = request.form.get("amount", "0").replace(",", "").strip()
         try:
             trans.amount = float(amt_str)

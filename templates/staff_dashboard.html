@@ -84,6 +84,33 @@
             </div>
         </div>
 
+        <!-- قسم إحصائيات الديون والأرصدة والفرق الإجمالي -->
+        <div class="row mb-4">
+            <!-- إجمالي الديون -->
+            <div class="col-md-4 mb-3">
+                <div class="content-card p-3 border-danger">
+                    <h6 class="text-danger fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-down ms-1"></i>إجمالي الديون (السالبة)</h6>
+                    <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_debts) }}</h3>
+                </div>
+            </div>
+            
+            <!-- إجمالي الأرصدة الموجبة -->
+            <div class="col-md-4 mb-3">
+                <div class="content-card p-3 border-success">
+                    <h6 class="text-success fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-up ms-1"></i>إجمالي الأرصدة الموجبة</h6>
+                    <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_positive_balances) }}</h3>
+                </div>
+            </div>
+            
+            <!-- الفرق الإجمالي -->
+            <div class="col-md-4 mb-3">
+                <div class="content-card p-3 border-info">
+                    <h6 class="text-info fw-bold small mb-2"><i class="fa-solid fa-scale-balanced ms-1"></i>الفرق الإجمالي</h6>
+                    <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(net_balance) }}</h3>
+                </div>
+            </div>
+        </div>
+
         <!-- شبكة حسابات المستخدمين (4 بطاقات في السطر) -->
         <div class="content-card p-4 mb-4">
             <h5 class="text-info mb-4 fw-bold fs-6">
