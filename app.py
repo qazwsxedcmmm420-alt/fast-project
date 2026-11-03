@@ -267,11 +267,19 @@ def staff_dashboard():
     if session.get("role") not in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
         
-    users_list = get_processed_users()
+    filter_type = request.args.get("filter", "all")
+    all_users_list = get_processed_users()
     
-    # حساب إحصائيات الديون والأرصدة والفرق الإجمالي لواجهة المسؤول
-    total_debts = sum(u['Balance'] for u in users_list if u['Balance'] < 0)
-    total_positive_balances = sum(u['Balance'] for u in users_list if u['Balance'] > 0)
+    # تصفية المستخدمين بناءً على الضغط على بطاقات الإحصائيات
+    if filter_type == "debts":
+        users_list = [u for u in all_users_list if u['Balance'] < 0]
+    elif filter_type == "positive":
+        users_list = [u for u in all_users_list if u['Balance'] > 0]
+    else:
+        users_list = all_users_list
+    
+    total_debts = sum(u['Balance'] for u in all_users_list if u['Balance'] < 0)
+    total_positive_balances = sum(u['Balance'] for u in all_users_list if u['Balance'] > 0)
     net_balance = total_positive_balances + total_debts
 
     return render_template(
@@ -279,7 +287,8 @@ def staff_dashboard():
         users=users_list,
         total_debts=total_debts,
         total_positive_balances=total_positive_balances,
-        net_balance=net_balance
+        net_balance=net_balance,
+        current_filter=filter_type
     )
 
 # ----------------- 5. إدارة العمليات (تسجيل، تعديل، حذف) -----------------

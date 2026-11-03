@@ -29,6 +29,7 @@
             border: 1px solid var(--border-color);
             border-radius: 14px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
         }
         .form-control, .form-select {
             background-color: #070a13;
@@ -66,6 +67,10 @@
             box-shadow: 0 12px 35px rgba(56, 189, 248, 0.2);
             transform: translateY(-5px);
         }
+        .filter-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -84,30 +89,36 @@
             </div>
         </div>
 
-        <!-- قسم إحصائيات الديون والأرصدة والفرق الإجمالي -->
+        <!-- قسم إحصائيات الديون والأرصدة القابلة للضغط والفلترة -->
         <div class="row mb-4">
-            <!-- إجمالي الديون -->
+            <!-- زر إجمالي الديون -->
             <div class="col-md-4 mb-3">
-                <div class="content-card p-3 border-danger">
-                    <h6 class="text-danger fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-down ms-1"></i>إجمالي الديون (السالبة)</h6>
-                    <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_debts) }}</h3>
-                </div>
+                <a href="{{ url_for('staff_dashboard', filter='debts') }}" class="text-decoration-none">
+                    <div class="content-card filter-card p-3 h-100 position-relative {% if current_filter == 'debts' %}border-danger bg-secondary bg-opacity-25{% else %}border-danger{% endif %}">
+                        <h6 class="text-danger fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-down ms-1"></i>إجمالي الديون (السالبة) - انقر للتصفية</h6>
+                        <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_debts) }}</h3>
+                    </div>
+                </a>
             </div>
             
-            <!-- إجمالي الأرصدة الموجبة -->
+            <!-- زر إجمالي الأرصدة الموجبة -->
             <div class="col-md-4 mb-3">
-                <div class="content-card p-3 border-success">
-                    <h6 class="text-success fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-up ms-1"></i>إجمالي الأرصدة الموجبة</h6>
-                    <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_positive_balances) }}</h3>
-                </div>
+                <a href="{{ url_for('staff_dashboard', filter='positive') }}" class="text-decoration-none">
+                    <div class="content-card filter-card p-3 h-100 position-relative {% if current_filter == 'positive' %}border-success bg-secondary bg-opacity-25{% else %}border-success{% endif %}">
+                        <h6 class="text-success fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-up ms-1"></i>إجمالي الأرصدة الموجبة - انقر للتصفية</h6>
+                        <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_positive_balances) }}</h3>
+                    </div>
+                </a>
             </div>
             
-            <!-- الفرق الإجمالي -->
+            <!-- زر الفرق الإجمالي (عرض الكل) -->
             <div class="col-md-4 mb-3">
-                <div class="content-card p-3 border-info">
-                    <h6 class="text-info fw-bold small mb-2"><i class="fa-solid fa-scale-balanced ms-1"></i>الفرق الإجمالي</h6>
-                    <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(net_balance) }}</h3>
-                </div>
+                <a href="{{ url_for('staff_dashboard') }}" class="text-decoration-none">
+                    <div class="content-card filter-card p-3 h-100 position-relative {% if current_filter == 'all' or not current_filter %}border-info bg-secondary bg-opacity-25{% else %}border-info{% endif %}">
+                        <h6 class="text-info fw-bold small mb-2"><i class="fa-solid fa-scale-balanced ms-1"></i>الفرق الإجمالي (عرض الكل)</h6>
+                        <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(net_balance) }}</h3>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -115,6 +126,11 @@
         <div class="content-card p-4 mb-4">
             <h5 class="text-info mb-4 fw-bold fs-6">
                 <i class="fa-solid fa-users ms-1"></i> قائمة الحسابات (اختر حساباً لعرض عملياته وتسجيل عملية جديدة له)
+                {% if current_filter == 'debts' %}
+                    <span class="badge bg-danger ms-2">فلتر: الحسابات المدينة فقط</span>
+                {% elif current_filter == 'positive' %}
+                    <span class="badge bg-success ms-2">فلتر: الأرصدة الموجبة فقط</span>
+                {% endif %}
             </h5>
 
             <div class="row g-3">
@@ -155,7 +171,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="col-12 text-center text-muted py-4">
-                        <p class="mb-0">لا توجد حسابات مستخدمين مسجلة حتى الآن</p>
+                        <p class="mb-0">لا توجد حسابات مطابقة للفلتر المحدد</p>
                     </div>
                 {% endif %}
             </div>
