@@ -219,6 +219,25 @@ def add_capital():
         
     return redirect(url_for("admin"))
 
+# مسار عرض سجل عمليات رأس المال والإدارة (للمدير فقط)
+@app.route("/admin/capital-log")
+def admin_capital_log():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+    
+    capital_transactions = Capital.query.order_by(Capital.date.desc()).all()
+    
+    formatted_transactions = []
+    for c in capital_transactions:
+        formatted_transactions.append({
+            "Type": "تعديل رأس المال",
+            "Note": c.note,
+            "Amount": c.amount,
+            "Date": c.date.strftime("%Y-%m-%d %H:%M:%S") if c.date else ""
+        })
+    
+    return render_template("admin_capital_log.html", transactions=formatted_transactions)
+
 # 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
 @app.route("/admin/add_user", methods=["GET", "POST"])
 def add_user():
@@ -270,7 +289,6 @@ def staff_dashboard():
     filter_type = request.args.get("filter", "all")
     all_users_list = get_processed_users()
     
-    # تصفية المستخدمين بناءً على الضغط على بطاقات الإحصائيات
     if filter_type == "debts":
         users_list = [u for u in all_users_list if u['Balance'] < 0]
     elif filter_type == "positive":
@@ -326,7 +344,6 @@ def add_transaction(user_id):
 
     return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
 
-# مسار تعديل عملية سابقة مع تحديث اسم مسجل العملية والنوع والمبلغ
 @app.route("/user/<user_id>/edit_transaction/<int:index>", methods=["GET", "POST"], endpoint="edit_transaction_page")
 @app.route("/transaction/edit/<int:index>", methods=["GET", "POST"])
 def edit_transaction(index, user_id=None):
