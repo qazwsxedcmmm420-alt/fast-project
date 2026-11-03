@@ -4,33 +4,56 @@
     <meta charset="UTF-8">
     <title>إضافة مستخدم جديد</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #0b132b;
+            background-color: #0b0f19;
             color: #ffffff;
             font-family: Tahoma, sans-serif;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
+            padding: 20px;
         }
         .card {
-            background-color: #1c2541;
-            border: 1px solid #3a506b;
-            border-radius: 12px;
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
             padding: 30px;
             width: 100%;
             max-width: 450px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .form-label {
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .form-control, .form-select {
+            background-color: #070a13;
+            color: #fff;
+            border-color: #1e293b;
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #070a13;
+            color: #fff;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
         }
         .btn-custom {
-            background-color: #3b82f6;
-            color: #fff;
+            background-color: #38bdf8;
+            color: #0b0f19;
             font-weight: bold;
+            border-radius: 10px;
+            transition: all 0.3s ease;
         }
         .btn-custom:hover {
-            background-color: #2563eb;
+            background-color: #0ea5e9;
             color: #fff;
         }
     </style>
@@ -38,42 +61,44 @@
 <body>
 
     <div class="card">
-        <h3 class="text-center mb-4 fw-bold">إضافة مستخدم / مسؤول جديد</h3>
+        <h3 class="text-center mb-4 fw-bold text-info"><i class="fa-solid fa-user-plus ms-2"></i>إضافة مستخدم / مسؤول جديد</h3>
         
         {% if error %}
-            <div class="alert alert-danger py-2 text-center">{{ error }}</div>
+            <div class="alert alert-danger py-2 text-center rounded-3">{{ error }}</div>
         {% endif %}
 
         <form method="POST">
             <div class="mb-3 text-start">
-                <label class="form-label">معرف الحساب (User ID)</label>
-                <input type="text" name="user_id" class="form-control" required placeholder="أدخل المعرف">
+                <label class="form-label d-block text-end">معرف الحساب (User ID)</label>
+                <input type="text" name="user_id" class="form-control text-end" required placeholder="أدخل المعرف (مثال: 2395)" dir="rtl">
             </div>
 
             <div class="mb-3 text-start">
-                <label class="form-label">اسم المستخدم</label>
-                <input type="text" name="name" class="form-control" required placeholder="أدخل الاسم الكامل">
+                <label class="form-label d-block text-end">اسم المستخدم</label>
+                <input type="text" name="name" class="form-control text-end" required placeholder="أدخل الاسم الكامل">
             </div>
 
             <div class="mb-3 text-start">
-                <label class="form-label">كلمة المرور</label>
-                <input type="password" name="password" class="form-control" required placeholder="أدخل كلمة المرور">
+                <label class="form-label d-block text-end">كلمة المرور</label>
+                <input type="password" name="password" class="form-control text-end" required placeholder="أدخل كلمة المرور">
             </div>
 
             <div class="mb-3 text-start">
-                <label class="form-label">صلاحية الحساب (Role)</label>
-                <select name="role" class="form-control">
+                <label class="form-label d-block text-end">صلاحية الحساب (Role)</label>
+                <select name="role" class="form-select text-end">
                     <option value="user">مستخدم عادي (User)</option>
                     <option value="staff">مسؤول / موظف (Staff)</option>
                     <option value="admin">مدير عام (Admin)</option>
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-custom w-100 py-2 mt-2">حفظ وإضافة</button>
+            <button type="submit" class="btn btn-custom w-100 py-2.5 mt-2">حفظ وإضافة</button>
         </form>
 
         <div class="text-center mt-3">
-            <a href="{{ url_for('admin') }}" class="text-muted text-decoration-none">العودة إلى لوحة التحكم</a>
+            <a href="{{ url_for('admin') }}" class="text-muted text-decoration-none small">
+                <i class="fa-solid fa-arrow-right ms-1"></i> العودة إلى لوحة التحكم
+            </a>
         </div>
     </div>
 
