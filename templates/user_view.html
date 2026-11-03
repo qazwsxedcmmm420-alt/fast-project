@@ -63,10 +63,17 @@
             text-align: center;
             font-weight: bold;
             font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .tab-btn.active {
+        .tab-btn.active-main {
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             border-color: #34d399;
+            color: #ffffff;
+        }
+        .tab-btn.active-gifts {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            border-color: #fbbf24;
             color: #ffffff;
         }
         .balance-main-card {
@@ -131,6 +138,8 @@
         }
         .card-positive::after { background-color: #22c55e; }
         .card-negative::after { background-color: #ef4444; }
+        .card-gift::after { background-color: #f59e0b; }
+        
         .trans-info {
             display: flex;
             align-items: center;
@@ -190,6 +199,10 @@
             background-color: rgba(239, 68, 68, 0.15);
             color: #ef4444;
         }
+        .icon-gift {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
         .trans-details h6 {
             margin: 0 0 4px 0;
             font-size: 0.95rem;
@@ -209,6 +222,7 @@
         }
         .amount-positive { color: #22c55e; }
         .amount-negative { color: #ef4444; }
+        .amount-gift { color: #f59e0b; }
     </style>
 </head>
 <body class="px-3 pt-2">
@@ -224,59 +238,150 @@
             </a>
         </div>
 
+        <!-- أزرار التبديل بين الرصيد الأساسي ورصيد الهدايا -->
         <div class="tabs-container">
-            <div class="tab-btn active">
+            <div class="tab-btn active-main" id="tab-main-btn" onclick="switchTab('main')">
                 <i class="fa-solid fa-wallet ms-1"></i> الرصيد الأساسي
             </div>
-            <div class="tab-btn">
+            <div class="tab-btn" id="tab-gifts-btn" onclick="switchTab('gifts')">
                 <i class="fa-solid fa-gift ms-1"></i> رصيد الهدايا
             </div>
         </div>
 
+        <!-- كارد الرصيد -->
         <div class="balance-main-card">
-            <div class="balance-title">الرصيد المتاح</div>
-            <div class="balance-value {% if user.Balance >= 0 %}text-white{% else %}text-danger{% endif %}">
+            <div class="balance-title" id="balance-title-text">الرصيد المتاح</div>
+            <div class="balance-value text-white" id="balance-display-val" style="direction: ltr;">
                 ${{ "{:,.0f}".format(user.Balance) }}
             </div>
         </div>
 
         <div class="section-header">
-            <div class="section-title">سجل العمليات</div>
-            <div class="badge-count">الكل</div>
+            <div class="section-title" id="section-title-text">سجل العمليات</div>
+            <div class="badge-count" id="badge-count-text">الكل</div>
         </div>
 
-        <div class="transactions-list">
+        <!-- قائمة العمليات الأساسية -->
+        <div class="transactions-list" id="list-main">
+            {% set main_has_items = namespace(found=false) %}
             {% if transactions %}
                 {% for t in transactions %}
-                {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
-                <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}" id="trans-{{ loop.index }}">
-                    <div class="trans-info">
-                        <div class="custom-checkbox" onclick="toggleCheck('trans-{{ loop.index }}')">
-                            <i class="fa-solid fa-check"></i>
+                    {% if "هدية" not in t.Type and "Gift" not in t.Type %}
+                        {% set main_has_items.found = true %}
+                        {% set is_dep = 'سحب' not in t.Type and '(-)' not in t.Type %}
+                        <div class="transaction-card {% if is_dep %}card-positive{% else %}card-negative{% endif %}" id="trans-main-{{ loop.index }}">
+                            <div class="trans-info">
+                                <div class="custom-checkbox" onclick="toggleCheck('trans-main-{{ loop.index }}')">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="trans-icon-box {% if is_dep %}icon-positive{% else %}icon-negative{% endif %}">
+                                    <i class="fa-solid {% if is_dep %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
+                                </div>
+                                <div class="trans-details">
+                                    <h6 class="trans-name">{{ t.Agent if t.Agent else t.Type }}</h6>
+                                    <p class="trans-date">{{ t.Date }}</p>
+                                </div>
+                            </div>
+                            <div class="trans-amount {% if is_dep %}amount-positive{% else %}amount-negative{% endif %}">
+                                {% set amt = t.Amount if t.Amount is defined and t.Amount is not none else (t.amount if t.amount is defined and t.amount is not none else 0) %}
+                                ${{ "{:,.0f}".format(amt|float) }}{% if is_dep %}+{% else %}-{% endif %}
+                            </div>
                         </div>
-                        
-                        <div class="trans-icon-box {% if is_dep %}icon-positive{% else %}icon-negative{% endif %}">
-                            <i class="fa-solid {% if is_dep %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
-                        </div>
-                        <div class="trans-details">
-                            <h6 class="trans-name">{{ t.Agent if t.Agent else t.Type }}</h6>
-                            <p class="trans-date">{{ t.Date }}</p>
-                        </div>
-                    </div>
-                    <div class="trans-amount {% if is_dep %}amount-positive{% else %}amount-negative{% endif %}">
-                        {% set amt = t.Amount if t.Amount is defined and t.Amount is not none else (t.amount if t.amount is defined and t.amount is not none else 0) %}
-                        ${{ "{:,.0f}".format(amt|float) }}{% if is_dep %}+{% else %}-{% endif %}
-                    </div>
-                </div>
+                    {% endif %}
                 {% endfor %}
-            {% else %}
-                <div class="text-center text-muted py-5">لا توجد عمليات مسجلة حتى الآن</div>
+            {% endif %}
+            
+            {% if not main_has_items.found %}
+                <div class="text-center text-muted py-5">لا توجد عمليات اساسية مسجلة حتى الآن</div>
+            {% endif %}
+        </div>
+
+        <!-- قائمة رصيد الهدايا (مخفية افتراضياً وتظهر عند الضغط) -->
+        <div class="transactions-list" id="list-gifts" style="display: none;">
+            {% set gift_has_items = namespace(found=false) %}
+            {% set gift_total = namespace(val=0) %}
+            {% if transactions %}
+                {% for t in transactions %}
+                    {% if "هدية" in t.Type or "Gift" in t.Type %}
+                        {% set gift_has_items.found = true %}
+                        {% set amt = t.Amount if t.Amount is defined and t.Amount is not none else (t.amount if t.amount is defined and t.amount is not none else 0) %}
+                        {% set gift_total.val = gift_total.val + amt|float %}
+                        <div class="transaction-card card-gift" id="trans-gift-{{ loop.index }}">
+                            <div class="trans-info">
+                                <div class="custom-checkbox" onclick="toggleCheck('trans-gift-{{ loop.index }}')">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="trans-icon-box icon-gift">
+                                    <i class="fa-solid fa-gift"></i>
+                                </div>
+                                <div class="trans-details">
+                                    <h6 class="trans-name">{{ t.Agent if t.Agent else t.Type }}</h6>
+                                    <p class="trans-date">{{ t.Date }}</p>
+                                </div>
+                            </div>
+                            <div class="trans-amount amount-gift">
+                                ${{ "{:,.0f}".format(amt|float) }}+
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% if not gift_has_items.found %}
+                <div class="text-center text-muted py-5">لا توجد هدايا مسجلة في حسابك حتى الآن</div>
             {% endif %}
         </div>
 
     </div>
 
     <script>
+        // احفظ المجموع الإجمالي للهدايا ورصيد المستخدم الأساسي للاستخدام في التبديل
+        const userMainBalance = "${{ "{:,.0f}".format(user.Balance) }}";
+        
+        // حساب إجمالي الهدايا ديناميكياً من الصفحة
+        let totalGiftsVal = 0;
+        {% set calc_gift = namespace(total=0) %}
+        {% if transactions %}
+            {% for t in transactions %}
+                {% if "هدية" in t.Type or "Gift" in t.Type %}
+                    {% set amt = t.Amount if t.Amount is defined and t.Amount is not none else (t.amount if t.amount is defined and t.amount is not none else 0) %}
+                    {% set calc_gift.total = calc_gift.total + amt|float %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        totalGiftsVal = "{{ "{:,.0f}".format(calc_gift.total) }}";
+
+        function switchTab(tabName) {
+            const btnMain = document.getElementById('tab-main-btn');
+            const btnGifts = document.getElementById('tab-gifts-btn');
+            const listMain = document.getElementById('list-main');
+            const listGifts = document.getElementById('list-gifts');
+            const balanceTitle = document.getElementById('balance-title-text');
+            const balanceVal = document.getElementById('balance-display-val');
+            const sectionTitle = document.getElementById('section-title-text');
+            const badgeCount = document.getElementById('badge-count-text');
+
+            if (tabName === 'gifts') {
+                btnGifts.className = "tab-btn active-gifts";
+                btnMain.className = "tab-btn";
+                listMain.style.display = "none";
+                listGifts.style.display = "block";
+                balanceTitle.innerText = "إجمالي رصيد الهدايا";
+                balanceVal.innerText = "$" + totalGiftsVal;
+                sectionTitle.innerText = "سجل الهدايا والمكافآت";
+                badgeCount.innerText = "هدايا";
+            } else {
+                btnMain.className = "tab-btn active-main";
+                btnGifts.className = "tab-btn";
+                listGifts.style.display = "none";
+                listMain.style.display = "block";
+                balanceTitle.innerText = "الرصيد المتاح";
+                balanceVal.innerText = userMainBalance;
+                sectionTitle.innerText = "سجل العمليات";
+                badgeCount.innerText = "الكل";
+            }
+        }
+
         function toggleCheck(cardId) {
             const card = document.getElementById(cardId);
             card.classList.toggle('checked');
@@ -284,7 +389,7 @@
             localStorage.setItem(cardId, isChecked);
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.jsdelivr = document.addEventListener("DOMContentLoaded", function() {
             const cards = document.querySelectorAll('.transaction-card');
             cards.forEach(card => {
                 const cardId = card.id;
