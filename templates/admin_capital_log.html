@@ -37,15 +37,30 @@
             font-size: 0.85rem;
             margin-top: 2px;
         }
+        .form-control {
+            background-color: #070a13;
+            color: #fff;
+            border-color: #1e293b;
+        }
+        .form-control:focus {
+            background-color: #070a13;
+            color: #fff;
+            border-color: #38bdf8;
+        }
     </style>
 </head>
 <body>
     <div class="container" style="max-width: 900px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-success"><i class="fa-solid fa-coins ms-2"></i>سجل العمليات الخاص بالإدارة (رأس المال)</h3>
-            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm">
-                <i class="fa-solid fa-arrow-right ms-1"></i> العودة للوحة التحكم
-            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-success btn-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#capitalModal">
+                    <i class="fa-solid fa-plus-circle ms-1"></i> إضافة رأس مال جديد
+                </button>
+                <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm">
+                    <i class="fa-solid fa-arrow-right ms-1"></i> العودة للوحة التحكم
+                </a>
+            </div>
         </div>
 
         <div class="content-card">
@@ -57,13 +72,50 @@
                     <div class="transaction-item">
                         <div>
                             <div class="fw-bold text-info mb-1"><i class="fa-solid fa-circle-dot fa-xs ms-1"></i> {{ t.Type }}</div>
-                            <!-- إبراز لون الملاحظات ووصف العملية لتكون واضحة -->
                             <div class="transaction-note">{{ t.Note if t.Note else 'تعديل رأس المال الأساسي' }}</div>
                             <div class="text-muted mt-1" style="font-size: 0.72rem;">{{ t.Date }}</div>
                         </div>
-                        <!-- تمييز القيم الموجبة بالأخضر والسالبة بالأحمر -->
-                        <div class="fw-bold fs-5 {% if t.Amount|float >= 0 %}text-positive{% else %}text-negative{% endif %}" style="direction: ltr;">
-                            {% if t.Amount|float >= 0 %}+${{ "{:,.1f}".format(t.Amount|float) }}{% else %}-${{ "{:,.1f}".format(t.Amount|float|abs) }}{% endif %}
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="fw-bold fs-5 {% if t.Amount|float >= 0 %}text-positive{% else %}text-negative{% endif %}" style="direction: ltr;">
+                                {% if t.Amount|float >= 0 %}+${{ "{:,.1f}".format(t.Amount|float) }}{% else %}-${{ "{:,.1f}".format(t.Amount|float|abs) }}{% endif %}
+                            </div>
+                            <!-- أزرار التعديل والحذف لكل عملية -->
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#editModal{{ t.ID }}" title="تعديل">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <a href="{{ url_for('delete_capital', id=t.ID) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟');" title="حذف">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- نافذة تعديل العملية -->
+                    <div class="modal fade" id="editModal{{ t.ID }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="background-color: #0f172a; color: #fff; border: 1px solid #1e293b;">
+                                <div class="modal-header border-bottom border-secondary border-opacity-10">
+                                    <h5 class="modal-title text-info fs-6"><i class="fa-solid fa-pen-to-square ms-1"></i> تعديل عملية رأس المال</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="{{ url_for('edit_capital', id=t.ID) }}" method="POST">
+                                    <div class="modal-body py-4 text-start">
+                                        <div class="mb-3">
+                                            <label class="form-label text-light small">المبلغ (استخدم علامة - للسالب)</label>
+                                            <input type="text" name="capital_amount" class="form-control py-2 text-end" value="{{ t.Amount }}" required autocomplete="off">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-light small">ملاحظة أو وصف العملية</label>
+                                            <input type="text" name="capital_note" class="form-control py-2 text-end" value="{{ t.Note }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-top border-secondary border-opacity-10">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">إلغاء</button>
+                                        <button type="submit" class="btn btn-info btn-sm px-4 fw-bold">حفظ التعديلات</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -76,5 +128,35 @@
             </div>
         </div>
     </div>
+
+    <!-- نافذة إضافة رأس مال جديد -->
+    <div class="modal fade" id="capitalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: #0f172a; color: #fff; border: 1px solid #1e293b;">
+                <div class="modal-header border-bottom border-secondary border-opacity-10">
+                    <h5 class="modal-title text-success fs-6"><i class="fa-solid fa-coins ms-1"></i> إضافة رأس مال جديد</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('add_capital') }}" method="POST">
+                    <div class="modal-body py-4 text-start">
+                        <div class="mb-3">
+                            <label class="form-label text-light small">المبلغ (موجب للإضافة أو سالب للخصم)</label>
+                            <input type="text" name="capital_amount" class="form-control py-2 text-end" placeholder="أدخل المبلغ..." required autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light small">ملاحظة أو وصف العملية</label>
+                            <input type="text" name="capital_note" class="form-control py-2 text-end" value="تعديل رأس المال الأساسي">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary border-opacity-10">
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-success btn-sm px-4 fw-bold">حفظ وإضافة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

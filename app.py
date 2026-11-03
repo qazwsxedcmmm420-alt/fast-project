@@ -217,7 +217,7 @@ def add_capital():
         db.session.add(new_capital)
         db.session.commit()
         
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_capital_log"))
 
 # مسار عرض سجل عمليات رأس المال والإدارة (للمدير فقط)
 @app.route("/admin/capital-log")
@@ -230,6 +230,7 @@ def admin_capital_log():
     formatted_transactions = []
     for c in capital_transactions:
         formatted_transactions.append({
+            "ID": c.id,
             "Type": "تعديل رأس المال",
             "Note": c.note,
             "Amount": c.amount,
@@ -237,6 +238,39 @@ def admin_capital_log():
         })
     
     return render_template("admin_capital_log.html", transactions=formatted_transactions)
+
+# مسار تعديل عملية رأس المال
+@app.route("/admin/capital/edit/<int:id>", methods=["POST"])
+def edit_capital(id):
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+        
+    capital_item = Capital.query.get_or_404(id)
+    amt_str = request.form.get("capital_amount", "0").replace(",", "").strip()
+    note = request.form.get("capital_note", "").strip()
+    
+    try:
+        capital_item.amount = float(amt_str)
+    except ValueError:
+        pass
+        
+    if note:
+        capital_item.note = note
+        
+    db.session.commit()
+    return redirect(url_for("admin_capital_log"))
+
+# مسار حذف عملية رأس المال
+@app.route("/admin/capital/delete/<int:id>")
+def delete_capital(id):
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+        
+    capital_item = Capital.query.get_or_404(id)
+    db.session.delete(capital_item)
+    db.session.commit()
+    
+    return redirect(url_for("admin_capital_log"))
 
 # 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
 @app.route("/admin/add_user", methods=["GET", "POST"])
