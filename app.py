@@ -474,10 +474,11 @@ def my_account():
         else:
             total_balance += t.amount
 
+        # تمرير المبلغ كرقم حقيقي (Float) لكي يتم تنسيقه وعرضه بشكل صحيح في القالب
         user_transactions.append({
             "Agent": t.agent_name,
             "Type": t.trans_type,
-            "Amount": f"{t.amount:,.0f}",
+            "Amount": float(t.amount or 0),
             "Date": t.date.strftime("%Y-%m-%d %H:%M:%S")
         })
 
