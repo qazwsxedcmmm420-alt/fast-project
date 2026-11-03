@@ -122,7 +122,7 @@
     <div class="container-fluid" style="max-width: 1600px;">
         
         <div class="row g-3">
-            <!-- الشريط الجانبي المصغر (col-lg-2.5 أو col-lg-3) -->
+            <!-- الشريط الجانبي المصغر -->
             <div class="col-lg-3">
                 <div class="sticky-left-column d-flex flex-column gap-2">
                     
@@ -145,13 +145,13 @@
                         <div class="fs-6 fw-bold text-positive" style="direction: ltr;">${{ "{:,.1f}".format(total_positive_balances) }}</div>
                     </a>
 
-                    <!-- بطاقة الفرق الإجمالي (بين الموجب والسالب فقط) -->
+                    <!-- بطاقة الفرق الإجمالي -->
                     <div class="stat-card">
                         <div class="stat-title"><i class="fa-solid fa-calculator ms-1"></i> الفرق الإجمالي</div>
                         <div class="fs-6 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
                     </div>
 
-                    <!-- بطاقة رأس المال (مع زر الإضافة والتعديل) -->
+                    <!-- بطاقة رأس المال -->
                     <div class="stat-card" style="border-color: #059669; background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);">
                         <div class="stat-title" style="color: #6ee7b7;"><i class="fa-solid fa-coins ms-1"></i> رأس المال الإجمالي</div>
                         <div class="fs-5 fw-bold text-positive mb-2" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
@@ -173,7 +173,7 @@
                 </div>
             </div>
 
-            <!-- القسم الأكبر لعرض المستخدمين (4 أيقونات في السطر الواحد عبر col-xl-3) -->
+            <!-- القسم الأكبر لعرض المستخدمين -->
             <div class="col-lg-9">
                 <div class="content-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-10">
@@ -191,12 +191,11 @@
                         {% endif %}
                     </div>
 
-                    <!-- شبكة عرض المستخدمين: 4 بطاقات في كل صف (col-xl-3) -->
+                    <!-- شبكة عرض المستخدمين -->
                     <div class="row g-3">
                         {% if users %}
                             {% for u in users %}
                             <div class="col-sm-6 col-md-4 col-xl-3">
-                                <!-- النقر على البطاقة بالكامل يفتح الحساب -->
                                 <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="user-grid-card">
                                     
                                     <!-- زر الحذف السريع -->
@@ -216,10 +215,17 @@
                                             {% endif %}
                                         </div>
 
-                                        <!-- اسم المستخدم واضح وبدون إظهار الـ ID -->
-                                        <h6 class="fw-bold mb-3 text-white text-truncate" title="{{ u.Name }}">{{ u.Name }}</h6>
+                                        <!-- اسم المستخدم -->
+                                        <h6 class="fw-bold mb-1 text-white text-truncate" title="{{ u.Name }}">{{ u.Name }}</h6>
                                         
-                                        <!-- كتابة وتوضيح الرصيد الكلي بشكل جميل -->
+                                        <!-- إظهار معرف الحساب (User ID) بوضوح تحت الاسم -->
+                                        <div class="mb-3">
+                                            <span class="badge bg-dark text-info border border-secondary px-2 py-1" style="font-size: 0.7rem; direction: ltr;">
+                                                ID: {{ u.User_ID }}
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- الرصيد الكلي -->
                                         <div class="py-2 px-2 rounded mb-2" style="background-color: #070a13; border: 1px solid #1e293b;">
                                             <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px;">الرصيد الكلي</div>
                                             <div class="fs-6 fw-bold" style="direction: ltr;">
@@ -250,7 +256,7 @@
 
     </div>
 
-    <!-- نافذة منبثقة (Modal) لتعديل وإضافة رأس المال -->
+    <!-- نافذة تعديل وإضافة رأس المال -->
     <div class="modal fade" id="capitalModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background-color: var(--bg-card); color: #fff; border: 1px solid var(--border-color);">
