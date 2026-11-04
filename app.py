@@ -131,8 +131,8 @@ def admin_login():
 
 @app.route("/logout")
 def logout():
-    session.clear()
     role = session.get("role")
+    session.clear()
     if role in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
     return redirect(url_for("user_login"))
