@@ -94,7 +94,6 @@
             direction: ltr;
             font-size: 2.5rem;
             font-weight: bold;
-            color: #ffffff;
         }
         .section-header {
             display: flex;
@@ -220,6 +219,8 @@
             font-size: 1.1rem;
             font-weight: bold;
         }
+        .text-positive { color: #22c55e !important; }
+        .text-negative { color: #ef4444 !important; }
         .amount-positive { color: #22c55e; }
         .amount-negative { color: #ef4444; }
         .amount-gift { color: #f59e0b; }
@@ -248,10 +249,10 @@
             </div>
         </div>
 
-        <!-- كارد الرصيد -->
+        <!-- كارد الرصيد المتاح مع التلوين التلقائي حسب القيمة (أخضر إذا موجب أو صفر، أحمر إذا سالب) -->
         <div class="balance-main-card">
             <div class="balance-title" id="balance-title-text">الرصيد المتاح</div>
-            <div class="balance-value text-white" id="balance-display-val" style="direction: ltr;">
+            <div class="balance-value {% if user.Balance >= 0 %}text-positive{% else %}text-negative{% endif %}" id="balance-display-val" style="direction: ltr;">
                 ${{ "{:,.0f}".format(user.Balance) }}
             </div>
         </div>
@@ -368,6 +369,8 @@
                 listGifts.style.display = "block";
                 balanceTitle.innerText = "إجمالي رصيد الهدايا";
                 balanceVal.innerText = "$" + totalGiftsVal;
+                // الهدايا دائماً موجبة، نضمن لونها الأخضر
+                balanceVal.className = "balance-value text-positive";
                 sectionTitle.innerText = "سجل الهدايا والمكافآت";
                 badgeCount.innerText = "هدايا";
             } else {
@@ -377,6 +380,12 @@
                 listMain.style.display = "block";
                 balanceTitle.innerText = "الرصيد المتاح";
                 balanceVal.innerText = userMainBalance;
+                // إعادة اللون بناءً على قيمة رصيد المستخدم الأساسي
+                {% if user.Balance >= 0 %}
+                balanceVal.className = "balance-value text-positive";
+                {% else %}
+                balanceVal.className = "balance-value text-negative";
+                {% endif %}
                 sectionTitle.innerText = "سجل العمليات";
                 badgeCount.innerText = "الكل";
             }
@@ -389,7 +398,7 @@
             localStorage.setItem(cardId, isChecked);
         }
 
-        document.jsdelivr = document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {
             const cards = document.querySelectorAll('.transaction-card');
             cards.forEach(card => {
                 const cardId = card.id;
