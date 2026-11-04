@@ -96,7 +96,7 @@
                 <a href="{{ url_for('staff_dashboard', filter='debts') }}" class="text-decoration-none">
                     <div class="content-card filter-card p-3 h-100 position-relative {% if current_filter == 'debts' %}border-danger bg-secondary bg-opacity-25{% else %}border-danger{% endif %}">
                         <h6 class="text-danger fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-down ms-1"></i>إجمالي الديون (السالبة) - انقر للتصفية</h6>
-                        <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_debts) }}</h3>
+                        <h3 class="fw-bold mb-0 {% if total_debts >= 0 %}text-positive{% else %}text-negative{% endif %}" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_debts) }}</h3>
                     </div>
                 </a>
             </div>
@@ -106,7 +106,7 @@
                 <a href="{{ url_for('staff_dashboard', filter='positive') }}" class="text-decoration-none">
                     <div class="content-card filter-card p-3 h-100 position-relative {% if current_filter == 'positive' %}border-success bg-secondary bg-opacity-25{% else %}border-success{% endif %}">
                         <h6 class="text-success fw-bold small mb-2"><i class="fa-solid fa-arrow-trend-up ms-1"></i>إجمالي الأرصدة الموجبة - انقر للتصفية</h6>
-                        <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_positive_balances) }}</h3>
+                        <h3 class="fw-bold text-positive mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(total_positive_balances) }}</h3>
                     </div>
                 </a>
             </div>
@@ -116,7 +116,7 @@
                 <a href="{{ url_for('staff_dashboard') }}" class="text-decoration-none">
                     <div class="content-card filter-card p-3 h-100 position-relative {% if current_filter == 'all' or not current_filter %}border-info bg-secondary bg-opacity-25{% else %}border-info{% endif %}">
                         <h6 class="text-info fw-bold small mb-2"><i class="fa-solid fa-scale-balanced ms-1"></i>الفرق الإجمالي (عرض الكل)</h6>
-                        <h3 class="fw-bold text-white mb-0" style="direction: ltr; text-align: right;">${{ "{:,.1f}".format(net_balance) }}</h3>
+                        <h3 class="fw-bold mb-0" style="direction: ltr; text-align: right; color: #38bdf8 !important;">${{ "{:,.1f}".format(net_balance) }}</h3>
                     </div>
                 </a>
             </div>
