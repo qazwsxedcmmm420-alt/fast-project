@@ -404,12 +404,17 @@ def edit_transaction(index, user_id=None):
 
     return render_template("edit_transaction.html", transaction=trans)
 
+# مسار حذف العمليات (مدعوم بعدة مسارات لمنع خطأ 404 نهائياً)
 @app.route("/transaction/delete/<int:index>")
-def delete_transaction(index):
+@app.route("/transaction/delete/<int:id>")
+@app.route("/admin/transaction/delete/<int:index>")
+@app.route("/admin/transaction/delete/<int:id>")
+def delete_transaction(index=None, id=None):
+    trans_id = index if index is not None else id
     if session.get("role") not in ["admin", "staff"]:
         return redirect(url_for("admin_login"))
 
-    trans = Transaction.query.get(index)
+    trans = Transaction.query.get(trans_id)
     if trans:
         db.session.delete(trans)
         db.session.commit()
@@ -518,34 +523,52 @@ def manifest():
 def service_worker():
     return send_from_directory("static", "sw.js")
 
-# --- تغيير كلمة المرور (خاص بالمدير فقط) ---
+# --- تعديل بيانات المسؤول/المدير (اسم المستخدم + كلمة المرور) ---
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
-    # حماية صارمة: التأكد من أن المستخدم الحالي هو المدير (admin) فقط
-    if session.get("role") != "admin":
+    # السماح للمدير والمسؤول (admin و staff) فقط بتغيير بياناتهم
+    if session.get("role") not in ["admin", "staff"]:
         flash("غير مصرح لك بالوصول إلى هذه الصفحة", "danger")
         return redirect(url_for("admin_login"))
 
+    u = User.query.get(session.get("user_db_id"))
+    if not u:
+        return redirect(url_for("logout"))
+
     if request.method == "POST":
+        new_username = request.form.get("new_username", "").strip()
         old_password = request.form.get("old_password", "").strip()
         new_password = request.form.get("new_password", "").strip()
         confirm_password = request.form.get("confirm_password", "").strip()
 
-        u = User.query.get(session.get("user_db_id"))
+        # التحقق من صحة كلمة المرور الحالية أولاً للأمان
+        if not check_password_hash(u.password, old_password):
+            return render_template("change_password.html", error="كلمة المرور الحالية غير صحيحة", current_username=u.user_id)
 
-        if not u or not check_password_hash(u.password, old_password):
-            return render_template("change_password.html", error="كلمة المرور الحالية غير صحيحة")
+        # 1. تحديث اسم المستخدم إذا تم إدخاله وكان مختلفاً
+        if new_username and new_username != u.user_id:
+            existing_user = User.query.filter_by(user_id=new_username).first()
+            if existing_user:
+                return render_template("change_password.html", error="اسم المستخدم الجديد مستخدم مسبقاً، اختر غيره", current_username=u.user_id)
+            
+            u.user_id = new_username
+            session["user_id"] = new_username  # تحديث الجلسة فوراً
 
-        if new_password != confirm_password:
-            return render_template("change_password.html", error="كلمات المرور الجديدة غير متطابقة")
+        # 2. تحديث كلمة المرور إذا تم إدخالها
+        if new_password:
+            if new_password != confirm_password:
+                return render_template("change_password.html", error="كلمات المرور الجديدة غير متطابقة", current_username=u.user_id)
+            u.password = generate_password_hash(new_password)
 
-        u.password = generate_password_hash(new_password)
         db.session.commit()
-        
-        flash("تم تغيير كلمة المرور بنجاح", "success")
-        return redirect(url_for("admin"))
+        flash("تم تحديث البيانات بنجاح", "success")
 
-    return render_template("change_password.html")
+        if u.role == "admin":
+            return redirect(url_for("admin"))
+        else:
+            return redirect(url_for("staff_dashboard"))
+
+    return render_template("change_password.html", current_username=u.user_id)
 
 if __name__ == "__main__":
     app.run(debug=True)
