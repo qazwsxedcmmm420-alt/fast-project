@@ -9,6 +9,13 @@
         .card { background-color: #27293d; border: none; border-radius: 12px; padding: 30px; width: 100%; max-width: 400px; }
         .btn-custom { background-color: #00bf9a; color: #fff; border: none; }
         .btn-custom:hover { background-color: #00a887; color: #fff; }
+        
+        /* إخفاء حاوية زر التثبيت افتراضياً حتى نتأكد أنه ليس مثبت في وضع standalone */
+        #installContainer {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -29,8 +36,8 @@
         </form>
     </div>
 
-    <!-- زر التثبيت الظاهر دائماً للتجربة -->
-    <div id="installContainer" style="text-align: center; margin-top: 20px;">
+    <!-- زر التثبيت -->
+    <div id="installContainer">
         <button id="installBtn" class="btn btn-success" style="padding: 10px 20px; border-radius: 8px;">تثبيت التطبيق على الشاشة الرئيسية</button>
     </div>
 
@@ -46,29 +53,33 @@
         const installContainer = document.getElementById('installContainer');
         const installBtn = document.getElementById('installBtn');
 
-        // التقاط حدث التثبيت من المتصفح
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
+        // التحقق الفوري هل التطبيق يعمل في وضع التثبيت (Standalone) أم من المتصفح
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
 
-        // عند الضغط على زر التثبيت
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installContainer.style.display = 'none';
+        if (!isStandalone) {
+            // إذا كان يفتح من المتصفح العادي، أظهر زر التثبيت
+            installContainer.style.display = 'block';
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+            });
+
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installContainer.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                } else {
+                    // رسالة توجيهية للتثبيت اليدوي من متصفح الهاتف
+                    alert("للتثبيت: اضغط على النقاط الثلاث أعلى المتصفح ثم اختر 'تثبيت التطبيق' أو 'الإضافة إلى الشاشة الرئيسية'.");
                 }
-                deferredPrompt = null;
-            } else {
-                // تذكير في حال لم يطلق المتصفح الحدث البرمجي بعد
-                alert("للتثبيت اليدوي: اضغط على النقاط الثلاث أعلى المتصفح ثم اختر 'الإضافة إلى الشاشة الرئيسية' أو 'تثبيت التطبيق'.");
-            }
-        });
-
-        // إخفاء الزر تلقائياً إذا كان التطبيق مفتوحاً من الشاشة الرئيسية (Standalone)
-        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            });
+        } else {
+            // إذا كان التطبيق مثبتاً ومفتوحاً من الشاشة الرئيسية، تأكد من إخفاء الزر تماماً
             installContainer.style.display = 'none';
         }
     </script>
