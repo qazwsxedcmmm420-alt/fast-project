@@ -127,9 +127,10 @@
         {% endif %}
 
         <form action="{{ url_for('admin_login') }}" method="POST">
+            <!-- تم تعديل الـ name ليوافق ملف البايثون user_id -->
             <div class="mb-3 text-start">
-                <label class="form-label">اسم المستخدم (Username)</label>
-                <input type="text" name="username" class="form-control text-center" placeholder="أدخل اسم المستخدم" required autocomplete="off">
+                <label class="form-label">اسم المستخدم (Username / ID)</label>
+                <input type="text" name="user_id" class="form-control text-center" placeholder="admin" value="admin" required autocomplete="off">
             </div>
             
             <div class="mb-4 text-start">
