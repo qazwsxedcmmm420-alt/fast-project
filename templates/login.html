@@ -2,85 +2,94 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تطبيق متابعة الحسابات - تسجيل الدخول</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق محفظتي - تسجيل الدخول</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #1e1e2f; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; }
-        .card { background-color: #27293d; border: none; border-radius: 12px; padding: 30px; width: 100%; max-width: 400px; }
-        .btn-custom { background-color: #00bf9a; color: #fff; border: none; }
-        .btn-custom:hover { background-color: #00a887; color: #fff; }
-        
-        /* إخفاء حاوية زر التثبيت افتراضياً حتى نتأكد أنه ليس مثبت في وضع standalone */
-        #installContainer {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
+        body {
+            background: linear-gradient(135deg, #1e1e2f 0%, #111119 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .login-card {
+            background-color: #27293d;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+        .app-icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+        .form-control {
+            background-color: #1e1e2f;
+            border: 1px solid #3d3f58;
+            color: #fff;
+            border-radius: 10px;
+            padding: 12px 15px;
+        }
+        .form-control:focus {
+            background-color: #1e1e2f;
+            border-color: #00bf9a;
+            color: #fff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 191, 154, 0.25);
+        }
+        .form-label {
+            color: #b8b9cc;
+            font-weight: 500;
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #00bf9a 0%, #00997a 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #00a887 0%, #008266 100%);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 191, 154, 0.3);
         }
     </style>
 </head>
 <body>
-    <div class="card shadow text-center">
-        <h4 class="mb-3">🔒 تطبيق متابعة الحسابات</h4>
-        <p class="text-muted small mb-4">الرجاء إدخال ID للوصول إلى حسابك</p>
+
+    <div class="login-card text-center">
+        <div class="app-icon">💰</div>
+        <h3 class="mb-2 fw-bold text-white">محفظتي</h3>
+        <p class="text-muted small mb-4">الرجاء إدخال معرف الحساب (ID) للوصول إلى لوحة التحكم</p>
         
         {% if error %}
-            <div class="alert alert-danger py-2">{{ error }}</div>
+            <div class="alert alert-danger py-2 mb-4" style="border-radius: 8px; font-size: 14px;">{{ error }}</div>
         {% endif %}
 
         <form action="{{ url_for('user_login') }}" method="POST">
-            <div class="mb-3 text-start">
-                <label class="form-label">(ID) معرف الحساب</label>
-                <input type="text" name="user_id" class="form-control" placeholder="أدخل 1001 مثلاً" required>
+            <div class="mb-4 text-start">
+                <label class="form-label">معرف الحساب (ID)</label>
+                <input type="text" name="user_id" class="form-control" placeholder="أدخل المعرف، مثلاً: 1001" required autocomplete="off">
             </div>
-            <button type="submit" class="btn btn-custom w-100 py-2">دخول الحساب</button>
+            <button type="submit" class="btn btn-custom w-100">دخول الحساب</button>
         </form>
     </div>
 
-    <!-- زر التثبيت -->
-    <div id="installContainer">
-        <button id="installBtn" class="btn btn-success" style="padding: 10px 20px; border-radius: 8px;">تثبيت التطبيق على الشاشة الرئيسية</button>
-    </div>
-
     <script>
-        // تسجيل الـ Service Worker
+        // الحفاظ على تسجيل الـ Service Worker لضمان استقرار عمل التطبيق كـ PWA في الخلفية دون إظهار أي أزرار
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}");
             });
-        }
-
-        let deferredPrompt;
-        const installContainer = document.getElementById('installContainer');
-        const installBtn = document.getElementById('installBtn');
-
-        // التحقق الفوري هل التطبيق يعمل في وضع التثبيت (Standalone) أم من المتصفح
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
-
-        if (!isStandalone) {
-            // إذا كان يفتح من المتصفح العادي، أظهر زر التثبيت
-            installContainer.style.display = 'block';
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-            });
-
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        installContainer.style.display = 'none';
-                    }
-                    deferredPrompt = null;
-                } else {
-                    // رسالة توجيهية للتثبيت اليدوي من متصفح الهاتف
-                    alert("للتثبيت: اضغط على النقاط الثلاث أعلى المتصفح ثم اختر 'تثبيت التطبيق' أو 'الإضافة إلى الشاشة الرئيسية'.");
-                }
-            });
-        } else {
-            // إذا كان التطبيق مثبتاً ومفتوحاً من الشاشة الرئيسية، تأكد من إخفاء الزر تماماً
-            installContainer.style.display = 'none';
         }
     </script>
 </body>
