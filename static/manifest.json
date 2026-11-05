@@ -1,6 +1,6 @@
 {
-  "name": "حسابي المالي",
-  "short_name": "حسابي",
+  "name": "محفظتي",
+  "short_name":"محفظتي",
   "start_url": "/login",
   "display": "standalone",
   "background_color": "#0b0f19",
