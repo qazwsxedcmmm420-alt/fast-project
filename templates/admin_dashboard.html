@@ -151,14 +151,21 @@
                         <div class="fs-6 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
                     </div>
 
-                    <!-- بطاقة رأس المال الإجمالي (نقر مباشر لفتح سجل العمليات) -->
-                    <a href="{{ url_for('admin_capital_log') }}" class="stat-card" style="border-color: #059669; background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);">
-                        <div class="stat-title" style="color: #6ee7b7;"><i class="fa-solid fa-coins ms-1"></i> رأس المال الإجمالي</div>
-                        <div class="fs-5 fw-bold text-positive mb-1" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
-                        <div class="text-info mt-1" style="font-size: 0.7rem;">
-                            <i class="fa-solid fa-hand-pointer ms-1"></i> اضغط لعرض السجل والإدارة
-                        </div>
-                    </a>
+                    <!-- بطاقة رأس المال الإجمالي (مع زر تغيير كلمة المرور المدمج) -->
+                    <div class="stat-card" style="border-color: #059669; background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); cursor: default;">
+                        <a href="{{ url_for('admin_capital_log') }}" class="text-decoration-none d-block mb-2">
+                            <div class="stat-title" style="color: #6ee7b7;"><i class="fa-solid fa-coins ms-1"></i> رأس المال الإجمالي</div>
+                            <div class="fs-5 fw-bold text-positive mb-1" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
+                            <div class="text-info mt-1" style="font-size: 0.7rem;">
+                                <i class="fa-solid fa-hand-pointer ms-1"></i> اضغط لعرض السجل والإدارة
+                            </div>
+                        </a>
+                        <!-- زر تغيير كلمة المرور الخاص بالمدير -->
+                        <hr class="border-secondary opacity-25 my-2">
+                        <a href="{{ url_for('change_password') }}" class="btn btn-outline-light btn-sm w-100 py-1 fw-bold" style="border-radius: 8px; font-size: 0.8rem; border-color: rgba(168, 85, 247, 0.5);">
+                            <i class="fa-solid fa-key ms-1 text-warning"></i> تغيير كلمة المرور
+                        </a>
+                    </div>
 
                     <a href="{{ url_for('add_user') }}" class="btn btn-primary btn-sm py-2 fw-bold shadow-sm" style="border-radius: 8px;">
                         <i class="fa-solid fa-user-plus ms-1"></i> إضافة مستخدم جديد

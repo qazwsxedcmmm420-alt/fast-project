@@ -474,7 +474,6 @@ def my_account():
         else:
             total_balance += t.amount
 
-        # تمرير المبلغ كرقم حقيقي (Float) لكي يتم تنسيقه وعرضه بشكل صحيح في القالب
         user_transactions.append({
             "Agent": t.agent_name,
             "Type": t.trans_type,
@@ -518,6 +517,35 @@ def manifest():
 @app.route("/sw.js")
 def service_worker():
     return send_from_directory("static", "sw.js")
+
+# --- تغيير كلمة المرور (خاص بالمدير فقط) ---
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    # حماية صارمة: التأكد من أن المستخدم الحالي هو المدير (admin) فقط
+    if session.get("role") != "admin":
+        flash("غير مصرح لك بالوصول إلى هذه الصفحة", "danger")
+        return redirect(url_for("admin_login"))
+
+    if request.method == "POST":
+        old_password = request.form.get("old_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
+
+        u = User.query.get(session.get("user_db_id"))
+
+        if not u or not check_password_hash(u.password, old_password):
+            return render_template("change_password.html", error="كلمة المرور الحالية غير صحيحة")
+
+        if new_password != confirm_password:
+            return render_template("change_password.html", error="كلمات المرور الجديدة غير متطابقة")
+
+        u.password = generate_password_hash(new_password)
+        db.session.commit()
+        
+        flash("تم تغيير كلمة المرور بنجاح", "success")
+        return redirect(url_for("admin"))
+
+    return render_template("change_password.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
