@@ -28,5 +28,39 @@
             <button type="submit" class="btn btn-custom w-100 py-2">دخول الحساب</button>
         </form>
     </div>
+    <!-- زر التثبيت الذي يظهر في المتصفح فقط -->
+    <div id="installContainer" style="display: none; text-align: center; margin: 20px;">
+        <button id="installBtn" class="btn btn-success" style="padding: 10px 20px; border-radius: 8px;">تثبيت التطبيق على الشاشة الرئيسية</button>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        const installContainer = document.getElementById('installContainer');
+        const installBtn = document.getElementById('installBtn');
+
+        // التحقق مما إذا كان التطبيق مثبتاً ويعمل في وضع Standalone
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        if (!isStandalone) {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                // إظهار الزر إذا كان المستخدم يتصفح من المتصفح العادي
+                installContainer.style.display = 'block';
+            });
+
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    installContainer.style.display = 'none';
+                }
+            });
+        } else {
+            // إخفاء الزر تماماً إذا تم فتحه من التطبيق المثبت
+            installContainer.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
