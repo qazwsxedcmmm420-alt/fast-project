@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>محفظتي - تسجيل الدخول</title>
+    <title>تطبيق متابعة الحسابات - تسجيل الدخول</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #1e1e2f; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; }
@@ -13,7 +13,7 @@
 </head>
 <body>
     <div class="card shadow text-center">
-        <h4 class="mb-3">🔒 محفظتي</h4>
+        <h4 class="mb-3">🔒 تطبيق متابعة الحسابات</h4>
         <p class="text-muted small mb-4">الرجاء إدخال ID للوصول إلى حسابك</p>
         
         {% if error %}
@@ -29,46 +29,46 @@
         </form>
     </div>
 
-    <!-- زر التثبيت الذي يظهر في المتصفح فقط ويختفي بعد التثبيت -->
-    <div id="installContainer" style="display: none; text-align: center; margin-top: 20px;">
+    <!-- زر التثبيت الظاهر دائماً للتجربة -->
+    <div id="installContainer" style="text-align: center; margin-top: 20px;">
         <button id="installBtn" class="btn btn-success" style="padding: 10px 20px; border-radius: 8px;">تثبيت التطبيق على الشاشة الرئيسية</button>
     </div>
 
     <script>
-        // 1. تسجيل الـ Service Worker لكي يعمل التطبيق كـ PWA
+        // تسجيل الـ Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
-                    .then(() => console.log('Service Worker Registered'))
-                    .catch((err) => console.log('Service Worker Failed', err));
+                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}");
             });
         }
 
-        // 2. إدارة ظهور واختفاء زر التثبيت
         let deferredPrompt;
         const installContainer = document.getElementById('installContainer');
         const installBtn = document.getElementById('installBtn');
 
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        // التقاط حدث التثبيت من المتصفح
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
 
-        if (!isStandalone) {
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                // إظهار زر التثبيت للمستخدم في المتصفح
-                installContainer.style.display = 'block';
-            });
-
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    deferredPrompt = null;
+        // عند الضغط على زر التثبيت
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
                     installContainer.style.display = 'none';
                 }
-            });
-        } else {
-            // إخفاء الزر تماماً إذا كان التطبيق مثبتاً ومفتوحاً من الشاشة الرئيسية
+                deferredPrompt = null;
+            } else {
+                // تذكير في حال لم يطلق المتصفح الحدث البرمجي بعد
+                alert("للتثبيت اليدوي: اضغط على النقاط الثلاث أعلى المتصفح ثم اختر 'الإضافة إلى الشاشة الرئيسية' أو 'تثبيت التطبيق'.");
+            }
+        });
+
+        // إخفاء الزر تلقائياً إذا كان التطبيق مفتوحاً من الشاشة الرئيسية (Standalone)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
             installContainer.style.display = 'none';
         }
     </script>
