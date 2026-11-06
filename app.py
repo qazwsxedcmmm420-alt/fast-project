@@ -272,7 +272,7 @@ def delete_capital(id):
     
     return redirect(url_for("admin_capital_log"))
 
-# 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
+# 3.1 إضافة مستخدم جديد (متاح للمدير فقط - كلمة المرور اختيارية للمستخدم العادي)
 @app.route("/admin/add_user", methods=["GET", "POST"])
 def add_user():
     if session.get("role") != "admin":
@@ -287,8 +287,8 @@ def add_user():
         if User.query.filter_by(user_id=user_id).first():
             return render_template("add_user.html", error="رقم التعريف مستخدم مسبقاً.")
         
-        if user_id and name and password:
-            hashed_password = generate_password_hash(password)
+        if user_id and name:
+            hashed_password = generate_password_hash(password) if password else ""
             new_user = User(
                 user_id=user_id,
                 name=name,
@@ -298,6 +298,8 @@ def add_user():
             db.session.add(new_user)
             db.session.commit()
             return redirect(url_for("admin"))
+        else:
+            return render_template("add_user.html", error="يرجى ملء الحقول الإجبارية (معرف الحساب والاسم).")
             
     return render_template("add_user.html")
 
@@ -526,7 +528,6 @@ def service_worker():
 # --- تعديل بيانات المسؤول/المدير (اسم المستخدم + كلمة المرور) ---
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
-    # السماح للمدير والمسؤول (admin و staff) فقط بتغيير بياناتهم
     if session.get("role") not in ["admin", "staff"]:
         flash("غير مصرح لك بالوصول إلى هذه الصفحة", "danger")
         return redirect(url_for("admin_login"))
@@ -541,20 +542,17 @@ def change_password():
         new_password = request.form.get("new_password", "").strip()
         confirm_password = request.form.get("confirm_password", "").strip()
 
-        # التحقق من صحة كلمة المرور الحالية أولاً للأمان
         if not check_password_hash(u.password, old_password):
             return render_template("change_password.html", error="كلمة المرور الحالية غير صحيحة", current_username=u.user_id)
 
-        # 1. تحديث اسم المستخدم إذا تم إدخاله وكان مختلفاً
         if new_username and new_username != u.user_id:
             existing_user = User.query.filter_by(user_id=new_username).first()
             if existing_user:
                 return render_template("change_password.html", error="اسم المستخدم الجديد مستخدم مسبقاً، اختر غيره", current_username=u.user_id)
             
             u.user_id = new_username
-            session["user_id"] = new_username  # تحديث الجلسة فوراً
+            session["user_id"] = new_username
 
-        # 2. تحديث كلمة المرور إذا تم إدخالها
         if new_password:
             if new_password != confirm_password:
                 return render_template("change_password.html", error="كلمات المرور الجديدة غير متطابقة", current_username=u.user_id)
