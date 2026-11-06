@@ -2,6 +2,7 @@
   "name": "SPEED App",
   "short_name": "SPEED",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#070a13",
   "theme_color": "#0f172a",
@@ -9,12 +10,14 @@
     {
       "src": "/static/uploads/speed_icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/static/uploads/speed_icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
