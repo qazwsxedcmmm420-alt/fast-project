@@ -180,7 +180,8 @@ def admin():
     
     net_balance = total_positive_balances + total_debts
     base_capital = db.session.query(db.func.sum(Capital.amount)).scalar() or 0.0
-    total_capital = base_capital + net_balance
+    # إجمالي رأس المال أصبح يعتمد على جدول رأس المال المستقل فقط (أو يمكنك عرضه كقيمة صافية مستقلة)
+    total_capital = base_capital
 
     return render_template(
         "admin_dashboard.html", 
