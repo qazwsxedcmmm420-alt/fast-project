@@ -49,7 +49,6 @@
         .text-positive { color: #2ecc71 !important; }
         .text-negative { color: #e74c3c !important; }
         
-        /* البطاقات الجانبية بلون جذاب */
         .stat-card {
             background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
             border: 1px solid #312e81;
@@ -72,7 +71,6 @@
             margin-bottom: 3px;
         }
 
-        /* تصميم بطاقات المستخدمين (4 بطاقات في السطر الواحد) */
         .user-grid-card {
             background: linear-gradient(145deg, #111827 0%, #0f172a 100%);
             border: 1px solid #334155;
@@ -95,7 +93,6 @@
             transform: translateY(-5px);
         }
         
-        /* زر الحذف السريع في زاوية البطاقة */
         .delete-btn-corner {
             position: absolute;
             top: 10px;
@@ -122,7 +119,7 @@
     <div class="container-fluid" style="max-width: 1600px;">
         
         <div class="row g-3">
-            <!-- الشريط الجانبي المصغر -->
+            <!-- الشريط الجانبي -->
             <div class="col-lg-3">
                 <div class="sticky-left-column d-flex flex-column gap-2">
                     
@@ -147,20 +144,19 @@
 
                     <!-- بطاقة الفرق الإجمالي -->
                     <div class="stat-card">
-                        <div class="stat-title"><i class="fa-solid fa-calculator ms-1"></i> الفرق الإجمالي</div>
+                        <div class="stat-title"><i class="fa-solid fa-calculator ms-1"></i> الفرق الإجمالي للعملاء</div>
                         <div class="fs-6 fw-bold text-info" style="direction: ltr;">${{ "{:,.1f}".format(net_balance) }}</div>
                     </div>
 
-                    <!-- بطاقة رأس المال الإجمالي (مع زر تغيير كلمة المرور المدمج) -->
+                    <!-- بطاقة رأس المال الأساسي -->
                     <div class="stat-card" style="border-color: #059669; background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); cursor: default;">
                         <a href="{{ url_for('admin_capital_log') }}" class="text-decoration-none d-block mb-2">
-                            <div class="stat-title" style="color: #6ee7b7;"><i class="fa-solid fa-coins ms-1"></i> رأس المال الإجمالي</div>
+                            <div class="stat-title" style="color: #6ee7b7;"><i class="fa-solid fa-coins ms-1"></i> رأس المال الأساسي</div>
                             <div class="fs-5 fw-bold text-positive mb-1" style="direction: ltr;">${{ "{:,.1f}".format(total_capital) }}</div>
                             <div class="text-info mt-1" style="font-size: 0.7rem;">
                                 <i class="fa-solid fa-hand-pointer ms-1"></i> اضغط لعرض السجل والإدارة
                             </div>
                         </a>
-                        <!-- زر تغيير كلمة المرور الخاص بالمدير -->
                         <hr class="border-secondary opacity-25 my-2">
                         <a href="{{ url_for('change_password') }}" class="btn btn-outline-light btn-sm w-100 py-1 fw-bold" style="border-radius: 8px; font-size: 0.8rem; border-color: rgba(168, 85, 247, 0.5);">
                             <i class="fa-solid fa-key ms-1 text-warning"></i> تغيير كلمة المرور
@@ -178,7 +174,7 @@
                 </div>
             </div>
 
-            <!-- القسم الأكبر لعرض المستخدمين -->
+            <!-- عرض المستخدمين -->
             <div class="col-lg-9">
                 <div class="content-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-10">
@@ -196,20 +192,20 @@
                         {% endif %}
                     </div>
 
-                    <!-- شبكة عرض المستخدمين -->
                     <div class="row g-3">
                         {% if users %}
                             {% for u in users %}
                             <div class="col-sm-6 col-md-4 col-xl-3">
                                 <a href="{{ url_for('user_dashboard', user_id=u.User_ID) }}" class="user-grid-card">
                                     
-                                    <!-- زر الحذف السريع -->
-                                    <button type="button" class="delete-btn-corner" onclick="event.preventDefault(); window.location.href='{{ url_for('delete_user', id=u.DB_ID) }}'; if(!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) event.stopPropagation();" title="حذف المستخدم">
+                                    <!-- زر الحذف المصحح -->
+                                    <button type="button" class="delete-btn-corner" 
+                                            onclick="event.preventDefault(); event.stopPropagation(); if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستخدم نهائياً؟')) { window.location.href='{{ url_for('delete_user', id=u.DB_ID) }}'; }" 
+                                            title="حذف المستخدم">
                                         <i class="fa-solid fa-trash-can fa-xs"></i>
                                     </button>
 
                                     <div class="w-100">
-                                        <!-- الصورة الشخصية -->
                                         <div class="mb-3 mt-1">
                                             {% if u.Profile_Image %}
                                                 <img src="{{ url_for('static', filename='uploads/' + u.Profile_Image) }}" class="rounded-circle shadow" style="width: 65px; height: 65px; object-fit: cover; border: 2.5px solid #38bdf8;">
@@ -220,17 +216,14 @@
                                             {% endif %}
                                         </div>
 
-                                        <!-- اسم المستخدم -->
                                         <h6 class="fw-bold mb-1 text-white text-truncate" title="{{ u.Name }}">{{ u.Name }}</h6>
                                         
-                                        <!-- إظهار معرف الحساب (User ID) بوضوح تحت الاسم -->
                                         <div class="mb-3">
                                             <span class="badge bg-dark text-info border border-secondary px-2 py-1" style="font-size: 0.7rem; direction: ltr;">
                                                 ID: {{ u.User_ID }}
                                             </span>
                                         </div>
                                         
-                                        <!-- الرصيد الكلي -->
                                         <div class="py-2 px-2 rounded mb-2" style="background-color: #070a13; border: 1px solid #1e293b;">
                                             <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px;">الرصيد الكلي</div>
                                             <div class="fs-6 fw-bold" style="direction: ltr;">
@@ -241,7 +234,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- تلميح التفاعل -->
                                     <div class="text-info mt-1" style="font-size: 0.7rem;">
                                         <i class="fa-solid fa-hand-pointer ms-1"></i> اضغط لإدارة الحساب
                                     </div>
