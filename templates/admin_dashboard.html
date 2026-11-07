@@ -167,6 +167,11 @@
                         <i class="fa-solid fa-user-plus ms-1"></i> إضافة مستخدم جديد
                     </a>
 
+                    <!-- زر النسخ الاحتياطي الجديد -->
+                    <a href="{{ url_for('backup_database') }}" class="btn btn-warning btn-sm py-2 fw-bold shadow-sm" style="border-radius: 8px;">
+                        <i class="fa-solid fa-download ms-1"></i> تحميل نسخة احتياطية للبيانات
+                    </a>
+
                     <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm py-1.5" style="border-radius: 8px;">
                         <i class="fa-solid fa-arrow-right-from-bracket ms-1"></i> تسجيل الخروج
                     </a>

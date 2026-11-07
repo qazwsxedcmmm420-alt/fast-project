@@ -1,6 +1,8 @@
 import os
+import csv
+import io
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash, Response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -180,7 +182,6 @@ def admin():
     
     net_balance = total_positive_balances + total_debts
     base_capital = db.session.query(db.func.sum(Capital.amount)).scalar() or 0.0
-    # إجمالي رأس المال أصبح يعتمد على جدول رأس المال المستقل فقط (أو يمكنك عرضه كقيمة صافية مستقلة)
     total_capital = base_capital
 
     return render_template(
@@ -198,6 +199,45 @@ def admin_debts():
     if session.get("role") != "admin":
         return redirect(url_for("admin_login"))
     return redirect(url_for("admin", filter="debts"))
+
+# --- مسار النسخ الاحتياطي للبيانات (للمدير فقط) ---
+@app.route("/admin/backup/csv")
+def backup_database():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+    
+    output = io.StringIO()
+    # إضافة BOM لضمان قراءة اللغة العربية بشكل صحيح في برامج مثل Excel
+    output.write('\ufeff')
+    writer = csv.writer(output)
+    
+    # كتابة بيانات العمليات كنسخة احتياطية رئيسية
+    writer.writerow(['--- سجل المعاملات والعمليات ---'])
+    writer.writerow(['Transaction ID', 'User ID (Username)', 'Client Name', 'Agent Name', 'Transaction Type', 'Amount', 'Date'])
+    
+    transactions = Transaction.query.all()
+    for t in transactions:
+        client = User.query.get(t.user_id)
+        client_id = client.user_id if client else "Unknown"
+        client_name = client.name if client else "Unknown"
+        writer.writerow([t.id, client_id, client_name, t.agent_name, t.trans_type, t.amount, t.date])
+    
+    writer.writerow([]) # مسافة فارغة
+    
+    # كتابة بيانات رأس المال
+    writer.writerow(['--- سجل رأس المال ---'])
+    writer.writerow(['Capital ID', 'Amount', 'Note', 'Date'])
+    capitals = Capital.query.all()
+    for c in capitals:
+        writer.writerow([c.id, c.amount, c.note, c.date])
+        
+    output.seek(0)
+    
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=financial_full_backup.csv"}
+    )
 
 # مسار إضافة وتعديل رأس المال الجديد (للمدير فقط)
 @app.route("/admin/add_capital", methods=["POST"])
@@ -458,7 +498,6 @@ def user_dashboard(user_id):
         "Balance": total_balance
     }
 
-    # جلب أسماء مسجلي العمليات الفريدة من قاعدة البيانات
     agent_names = list(set([t.agent_name for t in Transaction.query.all() if t.agent_name]))
 
     return render_template("user.html", user=user_info, transactions=user_transactions, agent_names=agent_names)
