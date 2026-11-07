@@ -122,14 +122,14 @@
                         <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
                             <div class="mb-3">
                                <label class="form-label text-light">اسم مسجل العملية</label>
-<input type="text" name="agent_name" class="form-control" list="agentsList" placeholder="أدخل اسمك أو اسم الموظف..." required autocomplete="off">
+                               <input type="text" name="agent_name" class="form-control" list="agentsList" placeholder="أدخل اسمك أو اسم الموظف..." required autocomplete="off">
 
-<!-- القائمة المقترحة للإكمال التلقائي -->
-<datalist id="agentsList">
-    {% for agent in agent_names %}
-        <option value="{{ agent }}">
-    {% endfor %}
-</datalist>
+                               <!-- القائمة المقترحة للإكمال التلقائي -->
+                               <datalist id="agentsList">
+                                   {% for agent in agent_names %}
+                                       <option value="{{ agent }}">
+                                   {% endfor %}
+                               </datalist>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-light">نوع العملية</label>
@@ -176,7 +176,6 @@
                             <tbody>
                                 {% if transactions %}
                                     {% for t in transactions %}
-                                    <!-- تمرير رقم السطر الفعلي Row_Index بدلاً من loop.index0 -->
                                     <tr onclick="openActionModal('{{ t.Row_Index }}', '{{ t.Agent }}', '{{ t.Type }}', '{{ t.Amount }}', '{{ t.Date }}')">
                                         <td>{{ t.Agent }}</td>
                                         <td>
@@ -241,8 +240,8 @@
         function deleteTransaction() {
             if (selectedRowIndex && selectedRowIndex !== 'undefined') {
                 if (confirm('هل أنت متأكد من رغبتك في حذف هذه العملية؟')) {
-                    // تركايب الرابط ديناميكياً بدقة وبدون القيمة النصية الثابتة PLACEHOLDER
-                    window.location.href = "/user/" + currentUserId + "/delete_transaction/" + selectedRowIndex;
+                    // المسار الصحيح المطابق لدالة الحذف في app.py لمنع خطأ 404
+                    window.location.href = "/transaction/delete/" + selectedRowIndex;
                 }
             } else {
                 alert('لم يتم تحديد رقم العملية بشكل صحيح.');
