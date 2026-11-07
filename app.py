@@ -458,7 +458,10 @@ def user_dashboard(user_id):
         "Balance": total_balance
     }
 
-    return render_template("user.html", user=user_info, transactions=user_transactions)
+    # جلب أسماء مسجلي العمليات الفريدة من قاعدة البيانات
+    agent_names = list(set([t.agent_name for t in Transaction.query.all() if t.agent_name]))
+
+    return render_template("user.html", user=user_info, transactions=user_transactions, agent_names=agent_names)
 
 # ----------------- 7. حساب المستخدم العادي (User View) -----------------
 @app.route("/my_account")

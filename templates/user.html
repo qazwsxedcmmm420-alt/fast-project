@@ -121,8 +121,15 @@
                         <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
                         <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
                             <div class="mb-3">
-                                <label class="form-label text-light">اسم مسجل العملية</label>
-                                <input type="text" name="agent_name" class="form-control" placeholder="أدخل اسمك أو اسم الموظف..." required>
+                               <label class="form-label text-light">اسم مسجل العملية</label>
+<input type="text" name="agent_name" class="form-control" list="agentsList" placeholder="أدخل اسمك أو اسم الموظف..." required autocomplete="off">
+
+<!-- القائمة المقترحة للإكمال التلقائي -->
+<datalist id="agentsList">
+    {% for agent in agent_names %}
+        <option value="{{ agent }}">
+    {% endfor %}
+</datalist>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-light">نوع العملية</label>
