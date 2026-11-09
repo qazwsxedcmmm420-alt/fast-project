@@ -113,7 +113,8 @@
                             </span>
                         </div>
                         <div class="mt-3">
-                            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-sm w-100 py-2" style="border-radius: 10px;">العودة للوحة التحكم</a>
+                            <!-- زر العودة المعدل ليتوافق مع صلاحية المسؤول أو المدير تلقائياً -->
+                            <a href="{% if session.get('role') == 'staff' %}{{ url_for('staff_dashboard') }}{% else %}{{ url_for('admin') }}{% endif %}" class="btn btn-outline-light btn-sm w-100 py-2" style="border-radius: 10px;">العودة للوحة التحكم</a>
                         </div>
                     </div>
 
@@ -240,7 +241,6 @@
         function deleteTransaction() {
             if (selectedRowIndex && selectedRowIndex !== 'undefined') {
                 if (confirm('هل أنت متأكد من رغبتك في حذف هذه العملية؟')) {
-                    // المسار الصحيح المطابق لدالة الحذف في app.py لمنع خطأ 404
                     window.location.href = "/transaction/delete/" + selectedRowIndex;
                 }
             } else {
