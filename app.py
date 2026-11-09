@@ -53,6 +53,13 @@ class Capital(db.Model):
     note = db.Column(db.String(255), default='رأس المال الأساسي')
     date = db.Column(db.DateTime, default=get_local_time)
 
+# نموذج مستقل لأسماء مسجلي العمليات (لحفظها وحذفها بشكل دائم وعبر كل الأجهزة)
+class Agent(db.Model):
+    __tablename__ = 'agents'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    date = db.Column(db.DateTime, default=get_local_time)
+
 # إنشاء الجداول تلقائياً وإنشاء مدير افتراضي عند عدم وجوده
 with app.app_context():
     db.create_all()
@@ -313,7 +320,7 @@ def delete_capital(id):
     
     return redirect(url_for("admin_capital_log"))
 
-# 3.1 إضافة مستخدم جديد (متاح للمدير فقط - كلمة المرور اختيارية للمستخدم العادي)
+# 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
 @app.route("/admin/add_user", methods=["GET", "POST"])
 def add_user():
     if session.get("role") != "admin":
@@ -386,7 +393,27 @@ def staff_dashboard():
         current_filter=filter_type
     )
 
-# ----------------- 5. إدارة العمليات (تسجيل، تعديل، حذف) -----------------
+# ----------------- 5. إدارة أسماء مسجلي العمليات (Agents Management) -----------------
+@app.route("/admin/agents", methods=["GET"])
+def manage_agents():
+    if session.get("role") not in ["admin", "staff"]:
+        return redirect(url_for("admin_login"))
+    
+    agents = Agent.query.order_by(Agent.date.desc()).all()
+    return render_template("manage_agents.html", agents=agents)
+
+@app.route("/admin/agent/delete/<int:id>")
+def delete_agent(id):
+    if session.get("role") not in ["admin", "staff"]:
+        return redirect(url_for("admin_login"))
+    
+    agent = Agent.query.get_or_404(id)
+    db.session.delete(agent)
+    db.session.commit()
+    
+    return redirect(url_for("manage_agents"))
+
+# ----------------- 6. إدارة العمليات (تسجيل، تعديل، حذف) -----------------
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
     if session.get("role") not in ["admin", "staff"]:
@@ -397,6 +424,14 @@ def add_transaction(user_id):
         agent_name = request.form.get("agent_name", "").strip()
         if not agent_name:
             agent_name = session.get("user_name", "المسؤول")
+            
+        # حفظ اسم مسجل العملية تلقائياً وبشكل دائم في جدول Agents إذا لم يكن موجوداً
+        if agent_name:
+            existing_agent = Agent.query.filter_by(name=agent_name).first()
+            if not existing_agent:
+                new_agent = Agent(name=agent_name)
+                db.session.add(new_agent)
+                db.session.commit()
             
         trans_type = request.form.get("type", "")
         
@@ -431,7 +466,12 @@ def edit_transaction(index, user_id=None):
     
     if request.method == "POST":
         trans.trans_type = request.form.get("type", trans.trans_type)
-        trans.agent_name = request.form.get("agent_name", trans.agent_name).strip()
+        new_agent = request.form.get("agent_name", trans.agent_name).strip()
+        if new_agent:
+            trans.agent_name = new_agent
+            if not Agent.query.filter_by(name=new_agent).first():
+                db.session.add(Agent(name=new_agent))
+                
         amt_str = request.form.get("amount", "0").replace(",", "").strip()
         try:
             trans.amount = float(amt_str)
@@ -447,7 +487,6 @@ def edit_transaction(index, user_id=None):
 
     return render_template("edit_transaction.html", transaction=trans)
 
-# مسار حذف العمليات (مدعوم بعدة مسارات لمنع خطأ 404 نهائياً)
 @app.route("/transaction/delete/<int:index>")
 @app.route("/transaction/delete/<int:id>")
 @app.route("/admin/transaction/delete/<int:index>")
@@ -464,7 +503,7 @@ def delete_transaction(index=None, id=None):
 
     return redirect(request.referrer or url_for("staff_dashboard" if session.get("role") == "staff" else "admin"))
 
-# ----------------- 6. واجهة تفاصيل المستخدم الخاصة بالأدمن / المسؤول -----------------
+# ----------------- 7. واجهة تفاصيل المستخدم الخاصة بالأدمن / المسؤول -----------------
 @app.route("/user/<user_id>", methods=["GET", "POST"])
 def user_dashboard(user_id):
     if session.get("role") not in ["admin", "staff"]:
@@ -498,11 +537,12 @@ def user_dashboard(user_id):
         "Balance": total_balance
     }
 
-    agent_names = list(set([t.agent_name for t in Transaction.query.all() if t.agent_name]))
+    # جلب الأسماء بشكل دائم من جدول Agents المستقل
+    agent_names = [a.name for a in Agent.query.all()]
 
     return render_template("user.html", user=user_info, transactions=user_transactions, agent_names=agent_names)
 
-# ----------------- 7. حساب المستخدم العادي (User View) -----------------
+# ----------------- 8. حساب المستخدم العادي (User View) -----------------
 @app.route("/my_account")
 def my_account():
     if session.get("role") != "user":
@@ -540,7 +580,7 @@ def my_account():
 
     return render_template("user_view.html", user=current_user, transactions=user_transactions)
 
-# ----------------- 8. رفع صورة الملف الشخصي -----------------
+# ----------------- 9. رفع صورة الملف الشخصي -----------------
 @app.route("/upload_profile_image/<user_id>", methods=["POST"])
 def upload_profile_image(user_id):
     if session.get("role") not in ["admin", "staff"]:
@@ -559,7 +599,7 @@ def upload_profile_image(user_id):
 
     return redirect(request.referrer or url_for("admin"))
 
-# ----------------- 9. ملفات التثبيت (PWA) -----------------
+# ----------------- 10. ملفات التثبيت (PWA) -----------------
 @app.route("/manifest.json")
 def manifest():
     return send_from_directory("static", "manifest.json")
@@ -568,7 +608,6 @@ def manifest():
 def service_worker():
     return send_from_directory("static", "sw.js")
 
-# --- تعديل بيانات المسؤول/المدير (اسم المستخدم + كلمة المرور) ---
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
     if session.get("role") not in ["admin", "staff"]:
@@ -612,4 +651,4 @@ def change_password():
     return render_template("change_password.html", current_username=u.user_id)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True) 
