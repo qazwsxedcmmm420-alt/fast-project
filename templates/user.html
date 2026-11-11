@@ -81,6 +81,55 @@
 
         .text-positive { color: #22c55e !important; }
         .text-negative { color: #ef4444 !important; }
+
+        /* تنسيقات القائمة المنسدلة المخصصة مع زر X */
+        .custom-dropdown-container {
+            position: relative;
+        }
+        .custom-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #0f172a;
+            color: #ffffff;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 1050;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin-top: 4px;
+        }
+        .dropdown-item-custom {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-item-custom:hover {
+            background-color: #1e293b;
+        }
+        .dropdown-item-custom span {
+            flex-grow: 1;
+        }
+        .btn-delete-x {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0 6px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btn-delete-x:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
     </style>
 </head>
 <body class="p-4">
@@ -121,17 +170,25 @@
                     <div class="content-card p-4">
                         <h4 class="mb-3 text-warning">تسجيل عملية جديدة</h4>
                         <form action="{{ url_for('add_transaction', user_id=user.User_ID) }}" method="POST">
-                            <div class="mb-3">
+                            <div class="mb-3 custom-dropdown-container">
                                <label class="form-label text-light">اسم مسجل العملية</label>
-                               <input type="text" name="agent_name" class="form-control" list="agentsList" placeholder="أدخل اسمك أو اختر من القائمة..." required autocomplete="off">
+                               <input type="text" id="agentInput" name="agent_name" class="form-control" placeholder="أدخل اسمك أو اختر من القائمة..." required autocomplete="off">
 
-                               <!-- القائمة المنسدلة التي تقرأ الأسماء من قاعدة البيانات الدائمة -->
-                               <datalist id="agentsList">
-                                   {% for agent in agent_names %}
-                                       <option value="{{ agent }}">
-                                   {% endfor %}
-                               </datalist>
+                               <!-- القائمة المخصصة التي تحتوي على الأسماء وزر X للحذف -->
+                               <div id="agentDropdown" class="custom-dropdown d-none">
+                                   {% if agent_names %}
+                                       {% for agent in agent_names %}
+                                           <div class="dropdown-item-custom">
+                                               <span onclick="selectAgent('{{ agent }}')">{{ agent }}</span>
+                                               <button type="button" class="btn-delete-x" onclick="deleteAgentDirect('{{ agent }}', event)" title="حذف الاسم">×</button>
+                                           </div>
+                                       {% endfor %}
+                                   {% else %}
+                                       <div class="p-2 text-muted text-center small">لا توجد أسماء محفوظة</div>
+                                   {% endif %}
+                               </div>
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label text-light">نوع العملية</label>
                                 <select name="type" class="form-select" required>
@@ -254,6 +311,57 @@
             }
         }
 
+        // تفاعلات القائمة المخصصة وأزرار الحذف X
+        const agentInput = document.getElementById('agentInput');
+        const agentDropdown = document.getElementById('agentDropdown');
+
+        agentInput.addEventListener('focus', function() {
+            agentDropdown.classList.remove('d-none');
+        });
+
+        agentInput.addEventListener('input', function() {
+            agentDropdown.classList.remove('d-none');
+            const filter = agentInput.value.toLowerCase();
+            const items = agentDropdown.getElementsByClassName('dropdown-item-custom');
+            for (let item of items) {
+                const text = item.querySelector('span').innerText.toLowerCase();
+                if (text.includes(filter)) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
+                }
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!agentInput.contains(e.target) && !agentDropdown.contains(e.target)) {
+                agentDropdown.classList.add('d-none');
+            }
+        });
+
+        function selectAgent(name) {
+            agentInput.value = name;
+            agentDropdown.classList.add('d-none');
+        }
+
+        function deleteAgentDirect(agentName, event) {
+            event.stopPropagation();
+            if (confirm(`هل أنت متأكد من حذف الاسم "${agentName}" نهائياً من النظام؟`)) {
+                fetch(`/admin/agent/delete_by_name/${encodeURIComponent(agentName)}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        event.target.closest('.dropdown-item-custom').remove();
+                    } else {
+                        alert('حدث خطأ أثناء الحذف.');
+                    }
+                })
+                .catch(() => alert('تعذر الاتصال بالسيرفر.'));
+            }
+        }
+
         const formattedInput = document.getElementById('formatted_amount');
         const rawInput = document.getElementById('raw_amount');
         const transForm = document.querySelector('form[action*="add_transaction"]');
@@ -280,4 +388,4 @@
         }
     </script>
 </body>
-</html>
+</html> 

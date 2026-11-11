@@ -214,11 +214,9 @@ def backup_database():
         return redirect(url_for("admin_login"))
     
     output = io.StringIO()
-    # إضافة BOM لضمان قراءة اللغة العربية بشكل صحيح في برامج مثل Excel
     output.write('\ufeff')
     writer = csv.writer(output)
     
-    # كتابة بيانات العمليات كنسخة احتياطية رئيسية
     writer.writerow(['--- سجل المعاملات والعمليات ---'])
     writer.writerow(['Transaction ID', 'User ID (Username)', 'Client Name', 'Agent Name', 'Transaction Type', 'Amount', 'Date'])
     
@@ -229,9 +227,8 @@ def backup_database():
         client_name = client.name if client else "Unknown"
         writer.writerow([t.id, client_id, client_name, t.agent_name, t.trans_type, t.amount, t.date])
     
-    writer.writerow([]) # مسافة فارغة
+    writer.writerow([])
     
-    # كتابة بيانات رأس المال
     writer.writerow(['--- سجل رأس المال ---'])
     writer.writerow(['Capital ID', 'Amount', 'Note', 'Date'])
     capitals = Capital.query.all()
@@ -246,7 +243,6 @@ def backup_database():
         headers={"Content-Disposition": "attachment;filename=financial_full_backup.csv"}
     )
 
-# مسار إضافة وتعديل رأس المال الجديد (للمدير فقط)
 @app.route("/admin/add_capital", methods=["POST"])
 def add_capital():
     if session.get("role") != "admin":
@@ -267,7 +263,6 @@ def add_capital():
         
     return redirect(url_for("admin_capital_log"))
 
-# مسار عرض سجل عمليات رأس المال والإدارة (للمدير فقط)
 @app.route("/admin/capital-log")
 def admin_capital_log():
     if session.get("role") != "admin":
@@ -287,7 +282,6 @@ def admin_capital_log():
     
     return render_template("admin_capital_log.html", transactions=formatted_transactions)
 
-# مسار تعديل عملية رأس المال
 @app.route("/admin/capital/edit/<int:id>", methods=["POST"])
 def edit_capital(id):
     if session.get("role") != "admin":
@@ -308,7 +302,6 @@ def edit_capital(id):
     db.session.commit()
     return redirect(url_for("admin_capital_log"))
 
-# مسار حذف عملية رأس المال
 @app.route("/admin/capital/delete/<int:id>")
 def delete_capital(id):
     if session.get("role") != "admin":
@@ -320,7 +313,6 @@ def delete_capital(id):
     
     return redirect(url_for("admin_capital_log"))
 
-# 3.1 إضافة مستخدم جديد (متاح للمدير فقط)
 @app.route("/admin/add_user", methods=["GET", "POST"])
 def add_user():
     if session.get("role") != "admin":
@@ -351,7 +343,6 @@ def add_user():
             
     return render_template("add_user.html")
 
-# 3.2 حذف مستخدم (للمدير فقط)
 @app.route("/admin/delete_user/<int:id>")
 def delete_user(id):
     if session.get("role") != "admin":
@@ -413,6 +404,20 @@ def delete_agent(id):
     
     return redirect(url_for("manage_agents"))
 
+# مسار حذف الاسم عن طريق AJAX مباشرة عند الضغط على زر X في القائمة المنسدلة
+@app.route("/admin/agent/delete_by_name/<path:name>", methods=["POST"])
+def delete_agent_by_name(name):
+    if session.get("role") not in ["admin", "staff"]:
+        return {"success": False, "error": "Unauthorized"}, 403
+    
+    agent = Agent.query.filter_by(name=name).first()
+    if agent:
+        db.session.delete(agent)
+        db.session.commit()
+        return {"success": True}
+    
+    return {"success": False, "error": "Not found"}, 404
+
 # ----------------- 6. إدارة العمليات (تسجيل، تعديل، حذف) -----------------
 @app.route("/add_transaction/<user_id>", methods=["POST"])
 def add_transaction(user_id):
@@ -425,7 +430,6 @@ def add_transaction(user_id):
         if not agent_name:
             agent_name = session.get("user_name", "المسؤول")
             
-        # حفظ اسم مسجل العملية تلقائياً وبشكل دائم في جدول Agents إذا لم يكن موجوداً
         if agent_name:
             existing_agent = Agent.query.filter_by(name=agent_name).first()
             if not existing_agent:
@@ -537,7 +541,6 @@ def user_dashboard(user_id):
         "Balance": total_balance
     }
 
-    # جلب الأسماء بشكل دائم من جدول Agents المستقل
     agent_names = [a.name for a in Agent.query.all()]
 
     return render_template("user.html", user=user_info, transactions=user_transactions, agent_names=agent_names)
@@ -651,4 +654,4 @@ def change_password():
     return render_template("change_password.html", current_username=u.user_id)
 
 if __name__ == "__main__":
-    app.run(debug=True) 
+    app.run(debug=True)
